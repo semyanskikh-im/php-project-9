@@ -1,0 +1,27 @@
+{
+    "name": "hexlet/code",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Hexlet\\Code\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Irina Semyanskikh",
+            "email": "semyanskikh@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "slim/slim": "4.*",
+        "slim/psr7": "^1.7",
+        "slim/http": "^1.4",
+        "slim/php-view": "^3.4",
+        "php-di/php-di": "^7.0",
+        "slim/flash": "^0.4.0"
+    },
+    "require-dev": {
+        "squizlabs/php_codesniffer": "^3.13"
+    }
+}
