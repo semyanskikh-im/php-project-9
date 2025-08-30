@@ -7,6 +7,8 @@ use DI\Container;
 use Valitron\Validator;
 use Hexlet\Code\Connection;
 use Hexlet\Code\Url;
+use Hexlet\Code\UrlRepository;
+use Slim\Http\Response as HttpResponse;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -53,18 +55,25 @@ $app->get('/', function (Request $request, Response $response) {
     return $this->get('renderer')->render($response, 'index.phtml');
 })->setName('/');
 
-//обработчик страницы с таблицей со всеми url'ами
+//обработчик страницы с таблицей со всеми url'ами НЕ НАПИСАН!!!
 $app->get('/urls', function (Request $request, Response $response) {
+    $pdo = $this->get('PDO');
+    $urlRepository = new UrlRepository($pdo);
+    $urls = $urlRepository->getAll();
 
+    $messages = $this->get('flash')->getMessages();
 
-    return $this->get('renderer')->render($response, '/urls/urls.phtml');
-})->setName('/urls');
+    $params = ['urls' => $urls, 'flash' => $messages];
+
+    return $this->get('renderer')->render($response, '/urls/urls.phtml', $params);
+})->setName('urls');
 
 
 $app->post('/urls', function (Request $request, Response $response) {
     $body = $request->getParsedBody();
+    // print_r($body);
     $urlName = $body['url']['name'];
-    //print_r($urlName);
+    // print_r($urlName);
 
     //здесь происходит валидация
     $v = new Validator(['url[name]' => $urlName]);
@@ -76,7 +85,7 @@ $app->post('/urls', function (Request $request, Response $response) {
     if (!$v->validate()) {
         $errors = $v->errors();
 
-        var_dump($errors);
+        //var_dump($errors);
 
         $params = ['errors' => $errors, 'urlValue' => $urlName];
         $response = $response->withStatus(422);
@@ -85,28 +94,58 @@ $app->post('/urls', function (Request $request, Response $response) {
 
     // здесь будет логика, если данные валидные и такого url в таблице нет. создание новой записи в таблице
     $pdo = $this->get('PDO');
+    $urlRepository = new UrlRepository($pdo);
 
-    $stmt = $pdo->prepare("SELECT id FROM urls WHERE name = ?");
-    $stmt->execute([$urlName]);
-    $existingUrl = $stmt->fetch(PDO::FETCH_ASSOC);
+    $existingUrl = $urlRepository->findByName($urlName);
 
     if ($existingUrl) {
-        // URL уже существует - добавляем flash сообщение и редиректим
+        // URL уже существует - редирект на страницу этого url 
+        $id = $existingUrl->getId();
+
         $this->get('flash')->addMessage('success', 'Страница уже существует');
-        return $response->withHeader('Location', "/urls/{$existingUrl['id']}")->withStatus(302);
+    } else {
+        // Если такого Url еще не существует - создаем новую запись в БД и редирект на страницу нового url
+
+        $newUrl = $urlRepository->create($urlName);
+
+        $id = $newUrl->getId();
+        
+        $this->get('flash')->addMessage('success', 'Страница успешно добавлена');
     }
 
-    // Создаем новую запись
-    $url = new Url();
-    $createdAt = $url->getCreatedAt();
-    $stmt = $pdo->prepare("INSERT INTO urls (name, created_at) VALUES (?, ?)");
-    $stmt->execute([$urlName, $createdAt]);
-
-    $newUrlId = $pdo->lastInsertId();
-
-    // Добавляем flash сообщение и редиректим на страницу нового URL
-    $this->get('flash')->addMessage('success', 'Страница успешно добавлена');
-    return $response->withHeader('Location', "/urls/{$newUrlId}")->withStatus(302);
+    return $response->withHeader('Location', "/urls/{$id}")
+    ->withStatus(302);
 });
+
+$app->get('/urls/{id}', function (Request $request, Response $response, array $args) {
+
+    $urlId = $args['id'];
+
+    $pdo = $this->get('PDO');
+    $urlRepository = new UrlRepository($pdo);
+
+    $url = $urlRepository->findById($urlId);
+
+    if (is_null($url)) {
+        $response->getBody()->write('Page not found');
+        return $response->withStatus(404);
+    }
+
+    $messages = $this->get('flash')->getMessages();
+
+    $params = [
+        'id' => $urlId,
+        'url' => $url,
+        'flash' => $messages
+    ];
+
+    return $this->get('renderer')->render($response, '/urls/show.phtml', $params);
+})->setName('urls.show');
+
+// $app->post('/urls/{id}/checks', function (Request $request, Response $response, array $args) {
+
+        //здесь логика на проверку сайта
+
+// });
 
 $app->run();

@@ -3,17 +3,16 @@
 namespace Hexlet\Code;
 
 use Carbon\Carbon;
-//require 'vendor/autoload.php';
 
 class Url
-{ 
+{
     private ?int $id = null;
     private ?string $urlName = null;
-    private ?Carbon $createdAt;
- 
+    private string $createdAt;
+
     public function __construct()
     {
-        $this->createdAt = Carbon::now();
+        $this->createdAt = Carbon::now()->toDateTimeString();
     }
 
     public function getId(): ?int
@@ -26,7 +25,7 @@ class Url
         return $this->urlName;
     }
 
-    public function getCreatedAt(): Carbon
+    public function getCreatedAt(): string
     {
         return $this->createdAt;
     }
@@ -35,18 +34,18 @@ class Url
     {
         $this->id = $id;
     }
- 
+
     public function setUrlName(string $urlName): void
     {
         $this->urlName = $urlName;
     }
 
-    public function setCreatedAt(Carbon $createdAt): void
+    public function setCreatedAt(string $createdAt): void
     {
         $this->createdAt = $createdAt;
     }
 
-     public static function fromArray(array $urlData): Url
+    public static function fromArray(array $urlData): Url
     {
         [$urlName, $createdAt] = $urlData;
         $url = new Url();
@@ -55,9 +54,9 @@ class Url
         return $url;
     }
 
-    public function exists(): bool
-    {
-        return !is_null($this->getId());
-    }
+    // public function exists(): bool
+    // {
+    //     return !is_null($this->getId());
+    // }
 
 }

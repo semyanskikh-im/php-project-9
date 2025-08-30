@@ -1,7 +1,14 @@
-<?php require 'header.html'; ?>
-<div class="alert alert-success" role="alert">
-    flash сообщение
-  </div>
+<?php include __DIR__ . '/../header.html'; ?>
+
+<?php if (count($flash) > 0) : ?>
+    <?php foreach ($flash as $messages) : ?>
+        <?php foreach ($messages as $message) : ?>
+            <div class="alert alert-success" role="alert">
+                <?= $message ?>
+            </div>
+        <?php endforeach ?>
+    <?php endforeach ?>
+<?php endif ?>
 
 <main class="flex-grow-1">
     <div class="container-lg mt-3">
@@ -19,11 +26,13 @@
                 <tbody>
                     <tr>
 
-<!-- сюда через foreach должны подтягиваться данные из БД и название каждой страницы должно быть ссылкой на {id} -->
+<!-- сюда через foreach должны подтягиваться данные из БД checks (или из двух бд??) и название каждой страницы должно быть ссылкой на {id} if isset $check-->
+                       
                         <td></td> 
                         <td></td>
                         <td></td>
-                        <td></td>
+                        <td></td> 
+                        
                     </tr>
                 </tbody>
             </table>
@@ -31,4 +40,4 @@
     </div>
 </main>
 
-<?php require 'footer.html'; ?>
+<?php include __DIR__ . '/../footer.html'; ?>
