@@ -24,16 +24,18 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
+                    <?php if (isset($rows)): ?>
+                        <tr>
+                            <?php foreach ($rows as $row): ?>
 
-<!-- сюда через foreach должны подтягиваться данные из БД checks (или из двух бд??) и название каждой страницы должно быть ссылкой на {id} if isset $check-->
-                       
-                        <td></td> 
-                        <td></td>
-                        <td></td>
-                        <td></td> 
-                        
-                    </tr>
+                                <td><?= htmlspecialchars($row['id']); ?></td>
+                                <td><a href="/urls/<?= htmlspecialchars($row['id']); ?>"> <?= htmlspecialchars($row['name']); ?> </a> </td>
+                                <td><?php isset($row['created_at']) ? htmlspecialchars($row['created_at']) : ''; ?></td>
+                                <td><?php isset($row['status_code']) ? htmlspecialchars($row['status_code']) : ''; ?></td>
+
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
                 </tbody>
             </table>
         </div>

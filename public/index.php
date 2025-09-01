@@ -4,11 +4,12 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Factory\AppFactory;
 use DI\Container;
+use Hexlet\Code\CheckRepo;
 use Valitron\Validator;
 use Hexlet\Code\Connection;
 use Hexlet\Code\Url;
-use Hexlet\Code\UrlRepository;
-use Slim\Http\Response as HttpResponse;
+use Hexlet\Code\UrlRepo;
+
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -44,7 +45,8 @@ $container->set('PDO', function () use ($dataBaseUrl) {
 // инициализируем создание таблиц
 $sqlFilePath = implode('/', [dirname(__DIR__), 'database.sql']);
 $initSql = file_get_contents($sqlFilePath);
-$container->get('PDO')->exec($initSql);
+$pdo = $container->get('PDO');
+$pdo->exec($initSql);
 
 $app = AppFactory::createFromContainer($container);
 $app->addErrorMiddleware(true, true, true);
@@ -56,24 +58,37 @@ $app->get('/', function (Request $request, Response $response) {
 })->setName('/');
 
 //обработчик страницы с таблицей со всеми url'ами НЕ НАПИСАН!!!
-$app->get('/urls', function (Request $request, Response $response) {
-    $pdo = $this->get('PDO');
-    $urlRepository = new UrlRepository($pdo);
-    $urls = $urlRepository->getAll();
+$app->get('/urls', function (Request $request, Response $response) use ($pdo) {
+
+    $sql = "SELECT
+                urls.id,
+                urls.name,
+                c.status_code,
+                c.created_at as last_check_date
+            FROM urls
+            LEFT JOIN (
+                SELECT DISTINCT ON (url_id) *
+                FROM checks
+                ORDER BY url_id, created_at DESC
+                ) c 
+                ON urls.id = c.url_id
+        ORDER BY urls.id ASC 
+    ";
+
+    $stmt = $pdo->query($sql);
+    $rows = $stmt->fetchAll();
 
     $messages = $this->get('flash')->getMessages();
 
-    $params = ['urls' => $urls, 'flash' => $messages];
+    $params = ['rows' => $rows, 'flash' => $messages];
 
     return $this->get('renderer')->render($response, '/urls/urls.phtml', $params);
 })->setName('urls');
 
 
-$app->post('/urls', function (Request $request, Response $response) {
+$app->post('/urls', function (Request $request, Response $response) use ($pdo) {
     $body = $request->getParsedBody();
-    // print_r($body);
     $urlName = $body['url']['name'];
-    // print_r($urlName);
 
     //здесь происходит валидация
     $v = new Validator(['url[name]' => $urlName]);
@@ -85,18 +100,16 @@ $app->post('/urls', function (Request $request, Response $response) {
     if (!$v->validate()) {
         $errors = $v->errors();
 
-        //var_dump($errors);
-
         $params = ['errors' => $errors, 'urlValue' => $urlName];
         $response = $response->withStatus(422);
         return $this->get('renderer')->render($response, 'index.phtml', $params);
     };
 
-    // здесь будет логика, если данные валидные и такого url в таблице нет. создание новой записи в таблице
-    $pdo = $this->get('PDO');
-    $urlRepository = new UrlRepository($pdo);
+    // здесь логика, если данные валидные и такого url в таблице нет. создание новой записи в таблице
 
-    $existingUrl = $urlRepository->findByName($urlName);
+    $urlRepo = new UrlRepo($pdo);
+
+    $existingUrl = $urlRepo->findByName($urlName);
 
     if ($existingUrl) {
         // URL уже существует - редирект на страницу этого url 
@@ -106,45 +119,48 @@ $app->post('/urls', function (Request $request, Response $response) {
     } else {
         // Если такого Url еще не существует - создаем новую запись в БД и редирект на страницу нового url
 
-        $newUrl = $urlRepository->create($urlName);
+        $newUrl = $urlRepo->create($urlName);
 
         $id = $newUrl->getId();
-        
+
         $this->get('flash')->addMessage('success', 'Страница успешно добавлена');
     }
 
     return $response->withHeader('Location', "/urls/{$id}")
-    ->withStatus(302);
+        ->withStatus(302);
 });
 
-$app->get('/urls/{id}', function (Request $request, Response $response, array $args) {
+$app->get('/urls/{id}', function (Request $request, Response $response, array $args) use ($pdo) {
 
     $urlId = $args['id'];
 
-    $pdo = $this->get('PDO');
-    $urlRepository = new UrlRepository($pdo);
+    $urlRepo = new UrlRepo($pdo);
 
-    $url = $urlRepository->findById($urlId);
+    $url = $urlRepo->findById($urlId);
 
     if (is_null($url)) {
         $response->getBody()->write('Page not found');
         return $response->withStatus(404);
     }
 
+    $checkRepo = new CheckRepo($pdo);
+    $checks = $checkRepo->getAllForUrlId($urlId);
+
     $messages = $this->get('flash')->getMessages();
 
     $params = [
         'id' => $urlId,
         'url' => $url,
+        'checks' => $checks,
         'flash' => $messages
     ];
 
     return $this->get('renderer')->render($response, '/urls/show.phtml', $params);
 })->setName('urls.show');
 
-// $app->post('/urls/{id}/checks', function (Request $request, Response $response, array $args) {
+// $app->post('/urls/{id}/checks', function (Request $request, Response $response, array $args) use ($pdo) {
 
-        //здесь логика на проверку сайта
+//здесь логика на проверку сайта
 
 // });
 

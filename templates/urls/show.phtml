@@ -47,8 +47,17 @@
                 </tr>
             </thead>
             <tbody>
-                <?php //здесь должны быть проверки форичем 
-                ?>
+                <?php if (isset($checks)) : ?>
+                    <tr><?php foreach ($checks as $check): ?>
+                            <th><?= isset($check->getId) ? htmlspecialchars($check->getId) : ''; ?></th>
+                            <th><?= isset($check->getStatusCode) ? htmlspecialchars($check->getStatusCode) : ''; ?></th>
+                            <th><?= isset($check->getH1) ? htmlspecialchars($check->getH1) : ''; ?></th>
+                            <th><?= isset($check->getTitle) ? htmlspecialchars($check->getTitle) : ''; ?></th>
+                            <th><?= isset($check->getDescription) ? htmlspecialchars($check->getDescription) : ''; ?></th>
+                            <th><?= isset($check->getCreatedAt) ? htmlspecialchars($check->getCreatedAt) : ''; ?></th>
+                    </tr>
+                <?php endforeach; ?>
+            <?php endif; ?>
             </tbody>
         </table>
     </div>
