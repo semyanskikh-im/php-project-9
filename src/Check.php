@@ -8,7 +8,7 @@ class Check
 {
     private ?int $id = null;
     private ?int $urlId = null;
-    private ?string $statusCode = null;
+    private ?Int $statusCode = null;
     private ?string $h1 = null;
     private ?string $title = null;
     private ?string $description = null;
@@ -29,7 +29,7 @@ class Check
         return $this->id;
     }
 
-    public function getStatusCode(): ?string
+    public function getStatusCode(): ?int
     {
         return $this->statusCode;
     }
@@ -64,22 +64,22 @@ class Check
         $this->urlId = $urlId;
     }
 
-    public function setStatusCode(string $statusCode): void
+    public function setStatusCode(?int $statusCode): void
     {
         $this->statusCode = $statusCode;
     }
 
-    public function setH1(string $h1): void
+    public function setH1(?string $h1): void
     {
         $this->h1 = $h1;
     }
 
-    public function setTitle(string $title): void
+    public function setTitle(?string $title): void
     {
         $this->title = $title;
     }
 
-    public function setDescription(string $description): void
+    public function setDescription(?string $description): void
     {
         $this->description = $description;
     }

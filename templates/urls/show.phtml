@@ -1,9 +1,9 @@
 <?php include __DIR__ . '/../header.html'; ?>
 
 <?php if (count($flash) > 0) : ?>
-    <?php foreach ($flash as $messages) : ?>
+    <?php foreach ($flash as $type => $messages) : ?>
         <?php foreach ($messages as $message) : ?>
-            <div class="alert alert-success" role="alert">
+            <div class="alert alert-<?= $type ?>" role="alert">
                 <?= $message ?>
             </div>
         <?php endforeach ?>
@@ -48,16 +48,17 @@
             </thead>
             <tbody>
                 <?php if (isset($checks)) : ?>
-                    <tr><?php foreach ($checks as $check): ?>
-                            <th><?= isset($check->getId) ? htmlspecialchars($check->getId) : ''; ?></th>
-                            <th><?= isset($check->getStatusCode) ? htmlspecialchars($check->getStatusCode) : ''; ?></th>
-                            <th><?= isset($check->getH1) ? htmlspecialchars($check->getH1) : ''; ?></th>
-                            <th><?= isset($check->getTitle) ? htmlspecialchars($check->getTitle) : ''; ?></th>
-                            <th><?= isset($check->getDescription) ? htmlspecialchars($check->getDescription) : ''; ?></th>
-                            <th><?= isset($check->getCreatedAt) ? htmlspecialchars($check->getCreatedAt) : ''; ?></th>
-                    </tr>
-                <?php endforeach; ?>
-            <?php endif; ?>
+                    <?php foreach ($checks as $check): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($check->getId()); ?></td>
+                            <td><?= htmlspecialchars($check->getStatusCode()) ?? ''; ?></td>
+                            <td><?= htmlspecialchars($check->getH1()) ?? ''; ?></td>
+                            <td><?= htmlspecialchars($check->getTitle()) ?? ''; ?></td>
+                            <td><?= htmlspecialchars($check->getDescription()) ?? ''; ?></td>
+                            <td><?= htmlspecialchars($check->getCreatedAt()); ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </tbody>
         </table>
     </div>

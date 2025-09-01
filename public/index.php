@@ -57,14 +57,14 @@ $app->get('/', function (Request $request, Response $response) {
     return $this->get('renderer')->render($response, 'index.phtml');
 })->setName('/');
 
-//обработчик страницы с таблицей со всеми url'ами НЕ НАПИСАН!!!
+//обработчик страницы с таблицей со всеми url'ами
 $app->get('/urls', function (Request $request, Response $response) use ($pdo) {
 
     $sql = "SELECT
                 urls.id,
                 urls.name,
                 c.status_code,
-                c.created_at as last_check_date
+                c.created_at
             FROM urls
             LEFT JOIN (
                 SELECT DISTINCT ON (url_id) *
@@ -158,10 +158,16 @@ $app->get('/urls/{id}', function (Request $request, Response $response, array $a
     return $this->get('renderer')->render($response, '/urls/show.phtml', $params);
 })->setName('urls.show');
 
-// $app->post('/urls/{id}/checks', function (Request $request, Response $response, array $args) use ($pdo) {
+$app->post('/urls/{id}/checks', function (Request $request, Response $response, array $args) use ($pdo) {
+    $urlId = $args['id'];
 
-//здесь логика на проверку сайта
+    $checkRepo = new CheckRepo($pdo);
+    $checkRepo->create($urlId);
 
-// });
+    $this->get('flash')->addMessage('success', 'Страница успешно проверена');
+
+    return $response->withHeader('Location', "/urls/{$urlId}")
+        ->withStatus(302);
+});
 
 $app->run();
