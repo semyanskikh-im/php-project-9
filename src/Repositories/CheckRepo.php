@@ -1,24 +1,29 @@
 <?php
 
-namespace Hexlet\Code;
+namespace Hexlet\Code\Repositories;
 
 use Hexlet\Code\Check;
 
 class CheckRepo extends BaseRepo
-
 {
-    public function create(int $urlId, $statusCode = null, $h1 = null, $title = null, $description = null): Check
+    public function create(int $urlId, int $statusCode, $data = []): Check
     {
         $check = new Check();
         $check->setUrlId($urlId);
         $check->setStatusCode($statusCode);
-        $check->setH1($h1);
-        $check->setTitle($title);
-        $check->setDescription($description);
+        $check->setH1($data['h1'] ?? null);
+        $check->setTitle($data['title'] ?? null);
+        $check->setDescription($data['description'] ?? null);
         $createdAt = $check->getCreatedAt();
-        $sql = "INSERT INTO checks (url_id, status_code, h1, title, description, created_at) VALUES (?, ?, ?, ?, ?, ?);";
+        $sql = "INSERT INTO checks (url_id, status_code, h1, title, description, created_at)
+                VALUES (?, ?, ?, ?, ?, ?);";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([$urlId, $statusCode, $h1, $title, $description, $createdAt]);
+        $stmt->execute([$urlId,
+                        $statusCode,
+                        $check->getH1(),
+                        $check->getTitle(),
+                        $check->getDescription(),
+                        $createdAt]);
         $id = (int) $this->pdo->lastInsertId();
         $check->setId($id);
 

@@ -1,15 +1,12 @@
 <?php
 
-namespace Hexlet\Code;
+namespace Hexlet\Code\Repositories;
 
 use PDO;
 use Hexlet\Code\Url;
 
 class UrlRepo extends BaseRepo
-
 {
-
-
     public function getAll(): array
     {
         return $this->getAllFromTable('urls');
@@ -60,17 +57,4 @@ class UrlRepo extends BaseRepo
 
         return $url;
     }
-
-    // public function isUrlExists(string $urlName): bool
-    // {
-    //     $sql = "SELECT id FROM urls WHERE name = ?";
-    //     $stmt = $this->pdo->prepare($sql);
-    //     $stmt->execute([$urlName]);
-    //     $row = $stmt->fetch();
-    //     return $row['id'] ? true : false; 
-    // }
 }
-
-
-//$statement = $pdo->prepare(' SELECT * FROM urls WHERE id = :id');
-//$statement->execute(['id' => 1]); // SELECT * FROM urls WHERE id = 1

@@ -8,7 +8,7 @@ class Check
 {
     private ?int $id = null;
     private ?int $urlId = null;
-    private ?Int $statusCode = null;
+    private ?int $statusCode = null;
     private ?string $h1 = null;
     private ?string $title = null;
     private ?string $description = null;

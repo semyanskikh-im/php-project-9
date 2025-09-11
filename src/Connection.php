@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Hexlet\Code;
 
 use PDO;

@@ -54,19 +54,4 @@ class Url
         $url->setCreatedAt($createdAt);
         return $url;
     }
-
-    // public static function urlFromRow (array $row): Url
-    // {
-    //     $urlData = Arr::only($row, ['name', 'created_at']);
-    //     $url = new Url();
-    //     $url->setUrlName($urlData['name']);
-    //     $url->setCreatedAt($urlData['created_at']);
-    //     return $url;
-    // }
-
-    // public function exists(): bool
-    // {
-    //     return !is_null($this->getId());
-    // }
-
 }
