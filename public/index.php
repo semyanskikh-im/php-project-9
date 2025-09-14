@@ -101,7 +101,7 @@ $app->get('/urls', function (Request $request, Response $response) use ($pdo) {
 //добавляем или нет новую запись в таблицу с url'ами
 $app->post('/urls', function (Request $request, Response $response) use ($urlRepo) {
     $body = $request->getParsedBody();
-    $urlName = $body['url']['name'];
+    $$urlName = isset($body['url']['name']) ? $body['url']['name'] : '';
 
     //здесь происходит валидация
     $validationResult = UrlValidator::validate(['url[name]' => $urlName]);
@@ -169,6 +169,11 @@ $app->post('/urls/{id}/checks', function (Request $request, Response $response, 
     $urlId = $args['id'];
 
     $url = $urlRepo->findById($urlId);
+    if (is_null($url)) {
+        $response->getBody()->write('Page not found');
+        return $response->withStatus(404);
+    }
+
     $urlName = $url->getUrlName();
 
     $checker = new Checker();
@@ -186,14 +191,17 @@ $app->post('/urls/{id}/checks', function (Request $request, Response $response, 
         $document = new Document($html);
 
         $h1Element = $document->first('h1');
-        $h1 = $h1Element ? trim($h1Element->text()) : '';
+        $h1 = $h1Element ? trim($h1Element->textContent) : '';
 
         $titleElement = $document->first('title');
-        $title = $titleElement ? trim($titleElement->text()) : '';
+        $title = $titleElement ? trim($titleElement->textContent) : '';
 
 
         $metaElement = $document->first('meta[name="description"]');
-        $description = $metaElement ? trim($metaElement->getAttribute('content')) : '';
+
+
+        $description = $metaElement?->getAttribute('content') ?? '';
+        $description = trim($description);
 
         $data = [
             'h1' => $h1,

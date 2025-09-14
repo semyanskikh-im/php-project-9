@@ -6,7 +6,7 @@ use Hexlet\Code\Check;
 
 class CheckRepo extends BaseRepo
 {
-    public function create(int $urlId, int $statusCode, $data = []): Check
+    public function create(int $urlId, int $statusCode, array $data = []): Check
     {
         $check = new Check();
         $check->setUrlId($urlId);

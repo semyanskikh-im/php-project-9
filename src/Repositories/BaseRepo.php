@@ -13,17 +13,22 @@ abstract class BaseRepo
         $this->pdo = $pdo;
     }
 
-    public function getAllFromTable(string $tableName, string $orderBy = 'created_at DESC'): array
+    public function getAllFromTable(string $tableName): array
     {
-        $items = [];
-        $sql = "SELECT * FROM {$tableName} ORDER BY {$orderBy}";
-        $stmt = $this->pdo->query($sql);
+        try {
+            $items = [];
+            $sql = "SELECT * FROM {$tableName} ORDER BY created_at DESC";
+            $stmt = $this->pdo->query($sql);
 
-        while ($row = $stmt->fetch()) {
-            $items[] = $this->makeEntityFromRow($row);
+            while ($row = $stmt->fetch()) {
+                $items[] = $this->makeEntityFromRow($row);
+            }
+
+            return $items;
+        } catch (\PDOException $e) {
+            error_log("Database error: " . $e->getMessage());
+            return [];
         }
-
-        return $items;
     }
 
     abstract public function makeEntityFromRow(array $row);
