@@ -10,6 +10,7 @@ use Hexlet\Code\Connection;
 use Hexlet\Code\Repositories\UrlRepo;
 use Hexlet\Code\Checker;
 use DiDom\Document;
+use DiDom\Element;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -101,7 +102,7 @@ $app->get('/urls', function (Request $request, Response $response) use ($pdo) {
 //добавляем или нет новую запись в таблицу с url'ами
 $app->post('/urls', function (Request $request, Response $response) use ($urlRepo) {
     $body = $request->getParsedBody();
-    $urlName = isset($body['url']['name']) ? $body['url']['name'] : '';
+    $urlName = $body['url']['name'] ?? '';
 
     //здесь происходит валидация
     $validationResult = UrlValidator::validate(['url[name]' => $urlName]);

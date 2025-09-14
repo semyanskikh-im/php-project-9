@@ -20,6 +20,11 @@ abstract class BaseRepo
             $sql = "SELECT * FROM {$tableName} ORDER BY created_at DESC";
             $stmt = $this->pdo->query($sql);
 
+            if ($stmt === false) {
+                error_log("Query failed for table: {$tableName}");
+                return [];
+            }
+
             while ($row = $stmt->fetch()) {
                 $items[] = $this->makeEntityFromRow($row);
             }
