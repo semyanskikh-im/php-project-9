@@ -101,7 +101,7 @@ $app->get('/urls', function (Request $request, Response $response) use ($pdo) {
 //добавляем или нет новую запись в таблицу с url'ами
 $app->post('/urls', function (Request $request, Response $response) use ($urlRepo) {
     $body = $request->getParsedBody();
-    $$urlName = isset($body['url']['name']) ? $body['url']['name'] : '';
+    $urlName = isset($body['url']['name']) ? $body['url']['name'] : '';
 
     //здесь происходит валидация
     $validationResult = UrlValidator::validate(['url[name]' => $urlName]);
@@ -191,10 +191,10 @@ $app->post('/urls/{id}/checks', function (Request $request, Response $response, 
         $document = new Document($html);
 
         $h1Element = $document->first('h1');
-        $h1 = $h1Element ? trim($h1Element->textContent) : '';
+        $h1 = $h1Element ? trim((string) $h1Element->text()) : '';
 
         $titleElement = $document->first('title');
-        $title = $titleElement ? trim($titleElement->textContent) : '';
+        $title = $titleElement ? trim((string) $titleElement->text()) : '';
 
 
         $metaElement = $document->first('meta[name="description"]');
