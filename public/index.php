@@ -196,10 +196,10 @@ $app->post('/urls/{id}/checks', function (Request $request, Response $response, 
         $document = new Document($html);
 
         $h1Element = $document->first('h1');
-        $h1 = trim(optional($h1Element)->text());
+        $h1 = $h1Element ? trim(optional($h1Element)->text()) : '';
 
         $titleElement = $document->first('title');
-        $title = trim(optional($titleElement)->text());
+        $title = $titleElement ? trim(optional($titleElement)->text()) : '';
 
 
         $metaElement = $document->first('meta[name="description"]');
