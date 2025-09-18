@@ -3,10 +3,11 @@
 namespace Hexlet\Code;
 
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ClientException;
+// use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ServerException;
 use GuzzleHttp\Exception\ConnectException;
-use GuzzleHttp\Exception\TooManyRedirectsException;
+// use GuzzleHttp\Exception\TooManyRedirectsException;
+use GuzzleHttp\Exception\RequestException;
 
 class Checker
 {
@@ -34,13 +35,27 @@ class Checker
             return [
                 'success' => false
             ];
-        } catch (ClientException | TooManyRedirectsException $e) {
+            // } catch (ClientException | TooManyRedirectsException $e) {
+            //     $response = $e->getResponse();
+            //     $statusCode = $response ? $response->getStatusCode() : '';
+            //     return [
+            //         'success' => true,
+            //         'statusCode' => $statusCode
+            //     ];
+        } catch (RequestException $e) {
+            // Общая обработка всех ошибок запроса
             $response = $e->getResponse();
-            $statusCode = $response ? $response->getStatusCode() : '';
-            return [
-                'success' => true,
-                'statusCode' => $statusCode
-            ];
+
+            if ($response) {
+                $statusCode = $response->getStatusCode();
+
+                return [
+                    'success' => true,
+                    'statusCode' => $statusCode
+                ];
+            } else {
+                return ['success' => false];
+            }
         }
     }
 

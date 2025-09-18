@@ -12,7 +12,8 @@ class UrlValidator
 
         $v->rule('required', 'url[name]')->message('URL не должен быть пустым!');
         $v->rule('lengthMax', 'url[name]', 255)->message('URL не должен превышать 255 символов!');
-        $v->rule('regex', 'url[name]', '/^(https?:\/\/)/')->message('Некорректный URL!');
+        $v->rule('url', 'url[name]')->message('Некорректный URL!');
+        $v->rule('regex', 'url[name]', '/^https?:\/\/[^A-Z]+/')->message('Некорректный URL!');
 
         if (!$v->validate()) {
             $errors = $v->errors();
