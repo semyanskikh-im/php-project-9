@@ -7,6 +7,7 @@ use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ServerException;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\TooManyRedirectsException;
+use GuzzleHttp\Exception\RequestException;
 
 class Checker
 {
@@ -37,7 +38,23 @@ class Checker
             return [
                 'success' => false
             ];
-        } catch (ClientException | TooManyRedirectsException $e) {
+            //catch (ClientException | TooManyRedirectsException $e) {
+            //     $response = $e->getResponse();
+
+            //     if (!$response) {
+            //         return ['success' => false];
+            //     }
+
+            //     $statusCode = $response->getStatusCode();
+            //     $html = (string) $response->getBody();
+            //     return [
+            //         'success' => true,
+            //         'statusCode' => $statusCode,
+            //         'html' => $html
+            //     ];
+            // }
+        } catch (RequestException $e) {
+            // Общая обработка всех ошибок запроса, которые не отловились выше (SSH ...)
             $response = $e->getResponse();
 
             if (!$response) {
