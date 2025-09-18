@@ -27,10 +27,11 @@ class Checker
         }
         try {
             $response = $this->client->request('GET', $url);
+            $statusCode = $response->getStatusCode();
             $html = (string) $response->getBody();
             return [
                 'success' => true,
-                'statusCode' => $response->getStatusCode(),
+                'statusCode' => $statusCode,
                 'html' => $html
             ];
         } catch (ConnectException | ServerException $e) {
@@ -38,17 +39,6 @@ class Checker
                 'success' => false
             ];
         } catch (ClientException | TooManyRedirectsException $e) {
-            $response = $e->getResponse();
-
-            $statusCode = $response ? $response->getStatusCode() : '';
-            $html = (string) $response->getBody();
-            return [
-                'success' => true,
-                'statusCode' => $statusCode,
-                'html' => $html
-            ];
-        } catch (RequestException $e) {
-            // Общая обработка всех ошибок запроса. которые не отловились выше
             $response = $e->getResponse();
 
             if (!$response) {
@@ -63,5 +53,21 @@ class Checker
                 'html' => $html
             ];
         }
+        // catch (RequestException $e) {
+        //     // Общая обработка всех ошибок запроса. которые не отловились выше
+        //     $response = $e->getResponse();
+
+        //     if (!$response) {
+        //         return ['success' => false];
+        //     }
+
+        //     $statusCode = $response->getStatusCode();
+        //     $html = (string) $response->getBody();
+        //     return [
+        //         'success' => true,
+        //         'statusCode' => $statusCode,
+        //         'html' => $html
+        //     ];
+        // }
     }
 }
