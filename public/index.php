@@ -191,7 +191,7 @@ $app->post('/urls/{id}/checks', function (Request $request, Response $response, 
 
         //парсинг DiDOM
 
-        $html = $checker->getHTML($urlName);
+        $html = $result['html'];
 
         $document = new Document($html);
 

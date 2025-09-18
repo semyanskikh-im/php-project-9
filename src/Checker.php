@@ -3,10 +3,10 @@
 namespace Hexlet\Code;
 
 use GuzzleHttp\Client;
-// use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ServerException;
 use GuzzleHttp\Exception\ConnectException;
-// use GuzzleHttp\Exception\TooManyRedirectsException;
+use GuzzleHttp\Exception\TooManyRedirectsException;
 use GuzzleHttp\Exception\RequestException;
 
 class Checker
@@ -27,42 +27,41 @@ class Checker
         }
         try {
             $response = $this->client->request('GET', $url);
+            $html = (string) $response->getBody();
             return [
                 'success' => true,
-                'statusCode' => $response->getStatusCode()
+                'statusCode' => $response->getStatusCode(),
+                'html' => $html
             ];
         } catch (ConnectException | ServerException $e) {
             return [
                 'success' => false
             ];
-            // } catch (ClientException | TooManyRedirectsException $e) {
-            //     $response = $e->getResponse();
-            //     $statusCode = $response ? $response->getStatusCode() : '';
-            //     return [
-            //         'success' => true,
-            //         'statusCode' => $statusCode
-            //     ];
-        } catch (RequestException $e) {
-            // Общая обработка всех ошибок запроса
+        } catch (ClientException | TooManyRedirectsException $e) {
             $response = $e->getResponse();
 
-            if ($response) {
-                $statusCode = $response->getStatusCode();
+            $statusCode = $response ? $response->getStatusCode() : '';
+            $html = (string) $response->getBody();
+            return [
+                'success' => true,
+                'statusCode' => $statusCode,
+                'html' => $html
+            ];
+        } catch (RequestException $e) {
+            // Общая обработка всех ошибок запроса. которые не отловились выше
+            $response = $e->getResponse();
 
-                return [
-                    'success' => true,
-                    'statusCode' => $statusCode
-                ];
-            } else {
+            if (!$response) {
                 return ['success' => false];
             }
-        }
-    }
 
-    public function getHTML(string $url): string
-    {
-        $response = $this->client->get($url);
-        $html = (string) $response->getBody();
-        return $html;
+            $statusCode = $response->getStatusCode();
+            $html = (string) $response->getBody();
+            return [
+                'success' => true,
+                'statusCode' => $statusCode,
+                'html' => $html
+            ];
+        }
     }
 }
