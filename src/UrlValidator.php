@@ -17,7 +17,9 @@ class UrlValidator
 
         if (!$v->validate()) {
             $errors = $v->errors();
-            $errors['url[name]'] = array_unique($errors['url[name]']);
+            if (isset($errors['url[name]'])) {
+                $errors['url[name]'] = array_unique($errors['url[name]']);
+            }
             return ['success' => false, 'errors' => $errors];
         }
 
