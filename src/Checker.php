@@ -34,7 +34,7 @@ class Checker
                 'statusCode' => $statusCode,
                 'html' => $html
             ];
-        } catch (ConnectException | ServerException $e) {
+        } catch (ConnectException $e) {
             return [
                 'success' => false
             ];

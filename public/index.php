@@ -10,19 +10,12 @@ use Hexlet\Code\Connection;
 use Hexlet\Code\Repositories\UrlRepo;
 use Hexlet\Code\Checker;
 use DiDom\Document;
-use DiDom\Element;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-//определяем среду окружения
-$isLocalEnvironment = file_exists(__DIR__ . '/../.env');
-
-//если есть файл .env загружаем переменные из него, если нет автоматом загрузится с рендера
-if ($isLocalEnvironment) {
-    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
-    $dotenv->load();
-    $dotenv->required(['DATABASE_URL']);
-}
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
+$dotenv->load();
+$dotenv->required(['DATABASE_URL']);
 
 $dataBaseUrl = $_ENV['DATABASE_URL'] ?? getenv('DATABASE_URL');
 
@@ -30,7 +23,21 @@ session_start();
 
 $container = new Container();
 $app = AppFactory::createFromContainer($container);
-$router = $app->getRouteCollector()->getRouteParser();
+
+$container->set(\PDO::class, function () use ($dataBaseUrl) {
+    $pdo = new Connection();
+    return $pdo->createPdo($dataBaseUrl);
+});
+
+$container->set(UrlRepo::class, function (Container $container) {
+    $pdo = $container->get(\PDO::class);
+    return new UrlRepo($pdo);
+});
+
+$container->set(CheckRepo::class, function (Container $container) {
+    $pdo = $container->get(\PDO::class);
+    return new CheckRepo($pdo);
+});
 
 $container->set('renderer', function () {
 
@@ -45,34 +52,18 @@ $container->set('router', function () use ($app) {
     return $app->getRouteCollector()->getRouteParser();
 });
 
-$container->set('PDO', function () use ($dataBaseUrl) {
-    $pdo = new Connection();
-    return $pdo->createPdo($dataBaseUrl);
-});
-
-$pdo = $container->get('PDO');
-
-$urlRepo = new UrlRepo($pdo);
-$checkRepo = new CheckRepo($pdo);
-
-
-// инициализируем создание таблиц
-$sqlFilePath = implode('/', [dirname(__DIR__), 'database.sql']);
-$initSql = file_get_contents($sqlFilePath);
-$pdo->exec($initSql);
-
-
 $app->addErrorMiddleware(true, true, true);
-
 
 //обработчик стартовой страницы
 $app->get('/', function (Request $request, Response $response) {
 
     return $this->get('renderer')->render($response, 'index.phtml');
-})->setName('home');
+})->setName('index');
 
 //обработчик страницы с таблицей со всеми url'ами
-$app->get('/urls', function (Request $request, Response $response) use ($pdo) {
+$app->get('/urls', function (Request $request, Response $response) {
+
+    $pdo = $this->get(\PDO::class);
 
     $sql = "SELECT
                 urls.id,
@@ -96,18 +87,18 @@ $app->get('/urls', function (Request $request, Response $response) use ($pdo) {
 
     $params = ['rows' => $rows, 'flash' => $messages];
 
-    return $this->get('renderer')->render($response, '/urls/urls.phtml', $params);
+    return $this->get('renderer')->render($response, '/urls/index.phtml', $params);
 })->setName('urls.index');
 
 //добавляем или нет новую запись в таблицу с url'ами
-$app->post('/urls', function (Request $request, Response $response) use ($urlRepo) {
+$app->post('/urls', function (Request $request, Response $response) {
+    $urlRepo = $this->get(UrlRepo::class);
     $body = $request->getParsedBody();
     $urlName = '';
 
-    if (is_array($body)) {
-        $urlName = $body['url']['name'] ?? '';
+    if ($body) {
+        $urlName = strtolower($body['url']['name']) ?? '';
     }
-
     //здесь происходит валидация
     $validationResult = UrlValidator::validate(['url[name]' => $urlName]);
 
@@ -118,7 +109,9 @@ $app->post('/urls', function (Request $request, Response $response) use ($urlRep
         return $this->get('renderer')->render($response, 'index.phtml', $params);
     };
 
-    $existingUrl = $urlRepo->findByName($urlName);
+    $domain = UrlValidator::extractDomain($urlName);
+
+    $existingUrl = $urlRepo->findByName($domain);
 
     if ($existingUrl) {
         // URL уже существует - редирект на страницу этого url
@@ -128,7 +121,7 @@ $app->post('/urls', function (Request $request, Response $response) use ($urlRep
     } else {
         // Если такого Url еще не существует - создаем новую запись в БД и редирект на страницу нового url
 
-        $newUrl = $urlRepo->create($urlName);
+        $newUrl = $urlRepo->create($domain);
 
         $id = $newUrl->getId();
 
@@ -141,18 +134,19 @@ $app->post('/urls', function (Request $request, Response $response) use ($urlRep
 });
 
 //вывод страницы конкретного url
-$app->get('/urls/{id:[0-9]+}', function (Request $request, Response $response, array $args) use ($urlRepo, $checkRepo) {
+$app->get('/urls/{id:[0-9]+}', function (Request $request, Response $response, array $args) {
 
     $urlId = $args['id'];
 
+    $urlRepo = $this->get(UrlRepo::class);
     $url = $urlRepo->findById($urlId);
 
     //если в базе нет такого url, выводим 404
     if (is_null($url)) {
-        $response->getBody()->write('Page not found');
-        return $response->withStatus(404);
+        return $this->get('renderer')->render($response->withStatus(404), '404.phtml');
     }
 
+    $checkRepo = $this->get(CheckRepo::class);
     $checks = $checkRepo->getAllForUrlId($urlId);
 
     $messages = $this->get('flash')->getMessages();
@@ -168,15 +162,15 @@ $app->get('/urls/{id:[0-9]+}', function (Request $request, Response $response, a
 })->setName('urls.show');
 
 //обработчик с seo-проверкой url
-$app->post('/urls/{id}/checks', function (Request $request, Response $response, array $args)
- use ($urlRepo, $checkRepo) {
+$app->post('/urls/{id}/checks', function (Request $request, Response $response, array $args) {
 
     $urlId = $args['id'];
 
+    $urlRepo = $this->get(UrlRepo::class);
     $url = $urlRepo->findById($urlId);
+
     if (is_null($url)) {
-        $response->getBody()->write('Page not found');
-        return $response->withStatus(404);
+        return $this->get('renderer')->render($response->withStatus(404), '404.phtml');
     }
 
     $urlName = (string) $url->getUrlName();
@@ -186,43 +180,51 @@ $app->post('/urls/{id}/checks', function (Request $request, Response $response, 
 
     if (!$result['success']) {
         $this->get('flash')->addMessage('danger', 'Произошла ошибка при проверке, не удалось подключиться');
-    } else {
-        $statusCode = $result['statusCode'];
-
-        //парсинг DiDOM
-
-        $html = $result['html'];
-
-        $document = new Document($html);
-
-        $h1Element = $document->first('h1');
-        $h1 = $h1Element ? trim(optional($h1Element)->text()) : '';
-
-        $titleElement = $document->first('title');
-        $title = $titleElement ? trim(optional($titleElement)->text()) : '';
-
-
-        $metaElement = $document->first('meta[name="description"]');
-
-
-        $description = $metaElement?->getAttribute('content') ?? '';
-        $description = trim($description);
-
-        $data = [
-            'h1' => $h1,
-            'title' => $title,
-            'description' => $description
-        ];
-
-        $checkRepo->create($urlId, $statusCode, $data);
-
-        $this->get('flash')->addMessage('success', 'Страница успешно проверена');
+        return $response
+            ->withHeader('Location', $this->get('router')->urlFor('urls.show', ['id' => $urlId]))
+            ->withStatus(302);
     }
 
+    $statusCode = $result['statusCode'];
+
+    //парсинг DiDOM
+
+    $html = $result['html'];
+
+    $document = new Document($html);
+
+    $h1Element = $document->first('h1');
+    $h1 = $h1Element ? trim(optional($h1Element)->text()) : '';
+
+    $titleElement = $document->first('title');
+    $title = $titleElement ? trim(optional($titleElement)->text()) : '';
+
+
+    $metaElement = $document->first('meta[name="description"]');
+
+
+    $description = $metaElement?->getAttribute('content') ?? '';
+    $description = trim($description);
+
+    $data = [
+        'h1' => $h1,
+        'title' => $title,
+        'description' => $description
+    ];
+
+    $checkRepo = $this->get(CheckRepo::class);
+    $checkRepo->create($urlId, $statusCode, $data);
+
+    $this->get('flash')->addMessage('success', 'Страница успешно проверена');
 
     return $response
         ->withHeader('Location', $this->get('router')->urlFor('urls.show', ['id' => $urlId]))
         ->withStatus(302);
+});
+
+// Обработчик для всех остальных маршрутов (404 ошибка)
+$app->any('/{routes:.+}', function (Request $request, Response $response) {
+    return $this->get('renderer')->render($response->withStatus(404), '404.phtml');
 });
 
 $app->run();
