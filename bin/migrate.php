@@ -11,7 +11,7 @@ $isLocalEnvironment = file_exists(__DIR__ . '/../.env');
 if ($isLocalEnvironment) {
     $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
     $dotenv->load();
-    $dotenv->required(['DATABASE_URL']);
+   // $dotenv->required(['DATABASE_URL']);
 }
 
 $dataBaseUrl = $_ENV['DATABASE_URL'] ?? getenv('DATABASE_URL');
