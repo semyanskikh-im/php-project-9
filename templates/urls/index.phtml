@@ -40,16 +40,22 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <?php if (isset($rows)): ?>
-                        <?php foreach ($rows as $row): ?>
-                            <tr>
-                                <td><?= htmlspecialchars($row['id']); ?></td>
-                                <td><a href="/urls/<?= htmlspecialchars($row['id']); ?>"> <?= htmlspecialchars($row['name']); ?> </a> </td>
-                                <td><?= htmlspecialchars($row['created_at'] ?? ''); ?></td>
-                                <td><?= htmlspecialchars($row['status_code'] ?? ''); ?></td>
+                    <?php if (isset($urls)): ?>
 
+                        <?php foreach ($urls as $url): ?>
+                            <?php
+                            $id = htmlspecialchars($url['id']);
+                            $name = htmlspecialchars($url['name']);
+                            $createdAt = htmlspecialchars($url['last_check']['created_at'] ?? '');
+                            $statusCode = htmlspecialchars($url['last_check']['status_code'] ?? '');
+                            ?>
+                            <tr>
+                                <td><?= $id ?></td>
+                                <td><a href="/urls/<?= $id ?>"> <?= $name ?></a></td>
+                                <td><?= $createdAt ?></td>
+                                <td><?= $statusCode ?></td>
                             </tr>
-                        <?php endforeach; ?>
+                        <?php endforeach ?>
                     <?php endif; ?>
                 </tbody>
             </table>

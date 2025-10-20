@@ -17,7 +17,7 @@ abstract class BaseRepo
     {
         try {
             $items = [];
-            $sql = "SELECT * FROM {$tableName} ORDER BY created_at DESC";
+            $sql = "SELECT * FROM {$tableName} ORDER BY created_at ASC";
             $stmt = $this->pdo->query($sql);
 
             if ($stmt === false) {

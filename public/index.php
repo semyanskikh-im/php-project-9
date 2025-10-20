@@ -63,29 +63,12 @@ $app->get('/', function (Request $request, Response $response) {
 //обработчик страницы с таблицей со всеми url'ами
 $app->get('/urls', function (Request $request, Response $response) {
 
-    $pdo = $this->get(\PDO::class);
-
-    $sql = "SELECT
-                urls.id,
-                urls.name,
-                c.status_code,
-                c.created_at
-            FROM urls
-            LEFT JOIN (
-                SELECT DISTINCT ON (url_id) *
-                FROM checks
-                ORDER BY url_id, created_at DESC
-                ) c 
-                ON urls.id = c.url_id
-        ORDER BY urls.id ASC 
-    ";
-
-    $stmt = $pdo->query($sql);
-    $rows = $stmt->fetchAll();
+    $urlRepo = $this->get(UrlRepo::class);
+    $urls = $urlRepo->findAllWithLastCheck();
 
     $messages = $this->get('flash')->getMessages();
 
-    $params = ['rows' => $rows, 'flash' => $messages];
+    $params = ['urls' => $urls, 'flash' => $messages];
 
     return $this->get('renderer')->render($response, '/urls/index.phtml', $params);
 })->setName('urls.index');

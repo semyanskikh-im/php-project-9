@@ -57,4 +57,37 @@ class UrlRepo extends BaseRepo
 
         return $url;
     }
+
+    public function findAllWithLastCheck(): array
+    {
+        $urls = $this->getAll();
+
+
+        $result = [];
+        foreach ($urls as $url) {
+            $lastCheck = $this->getLastCheckForUrl($url->getId());
+
+
+            $urlData = [
+                'id' => $url->getId(),
+                'name' => $url->getUrlName(),
+                'created_at' => $url->getCreatedAt(),
+                'last_check' => $lastCheck
+            ];
+
+            $result[] = $urlData;
+        }
+
+        return $result;
+    }
+
+    private function getLastCheckForUrl(int $urlId): ?array
+    {
+        $sql = "SELECT status_code, created_at FROM checks WHERE url_id = ? ORDER BY created_at DESC LIMIT 1";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([$urlId]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $result ?: null;
+    }
 }
