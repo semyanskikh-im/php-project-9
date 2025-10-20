@@ -86,7 +86,7 @@ $app->post('/urls', function (Request $request, Response $response) {
     $urlName = '';
 
     if (is_array($body)) {
-        $urlName = strtolower($body['url']['name']) ?? '';
+        $urlName = strtolower($body['url']['name']);
     }
     //здесь происходит валидация
     $validationResult = UrlValidator::validate(['url[name]' => $urlName]);
