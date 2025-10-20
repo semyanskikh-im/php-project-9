@@ -85,7 +85,7 @@ $app->post('/urls', function (Request $request, Response $response) {
     $body = $request->getParsedBody();
     $urlName = '';
 
-    if ($body) {
+    if (is_array($body)) {
         $urlName = strtolower($body['url']['name']) ?? '';
     }
     //здесь происходит валидация
