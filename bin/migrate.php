@@ -4,17 +4,15 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 use Hexlet\Code\Connection;
 
-// $isLocalEnvironment = file_exists(__DIR__ . '/../.env');
+//определяем среду окружения
+$isLocalEnvironment = file_exists(__DIR__ . '/../.env');
 
-// //если есть файл .env загружаем переменные из него, если нет автоматом загрузится с рендера
-// if ($isLocalEnvironment) {
-//     $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
-//     $dotenv->load();
-//     $dotenv->required(['DATABASE_URL']);
-// }
-
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../.env');
-$dotenv->load();
+//если есть файл .env загружаем переменные из него, если нет автоматом загрузится с рендера
+if ($isLocalEnvironment) {
+    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
+    $dotenv->load();
+    $dotenv->required(['DATABASE_URL']);
+}
 
 $dataBaseUrl = $_ENV['DATABASE_URL'] ?? getenv('DATABASE_URL');
 
