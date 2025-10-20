@@ -17,7 +17,7 @@ class UrlValidator
 
         if (!$v->validate()) {
             $errors = $v->errors();
-            $$firstError = $errors['url[name]'][0] ?? '';
+            $firstError = $errors['url[name]'][0] ?? '';
 
             return [
                 'success' => false,
