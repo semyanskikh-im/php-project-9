@@ -1,18 +1,18 @@
 <?php
 
-namespace Hexlet\Code;
+namespace Hexlet\Code\Entities;
 
 use Carbon\Carbon;
-use Illuminate\Support\Arr;
 
 class Url
 {
     private ?int $id = null;
-    private ?string $urlName = null;
+    private string $urlName;
     private string $createdAt;
 
-    public function __construct()
+    public function __construct($urlName)
     {
+        $this->urlName = $urlName;
         $this->createdAt = Carbon::now()->toDateTimeString();
     }
 
@@ -21,7 +21,7 @@ class Url
         return $this->id;
     }
 
-    public function getUrlName(): ?string
+    public function getUrlName(): string
     {
         return $this->urlName;
     }
@@ -49,7 +49,7 @@ class Url
     public static function fromArray(array $urlData): Url
     {
         [$urlName, $createdAt] = $urlData;
-        $url = new Url();
+        $url = new Url($urlName);
         $url->setUrlName($urlName);
         $url->setCreatedAt($createdAt);
         return $url;

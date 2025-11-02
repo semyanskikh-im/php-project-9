@@ -1,25 +1,26 @@
 <?php
 
-namespace Hexlet\Code;
+namespace Hexlet\Code\Entities;
 
 use Carbon\Carbon;
 
-class Check
+class UrlCheck
 {
     private ?int $id = null;
-    private ?int $urlId = null;
+    private int $urlId;
     private ?int $statusCode = null;
     private ?string $h1 = null;
     private ?string $title = null;
     private ?string $description = null;
     private string $createdAt;
 
-    public function __construct()
+    public function __construct($urlId)
     {
+        $this->urlId = $urlId;
         $this->createdAt = Carbon::now()->toDateTimeString();
     }
 
-    public function getUrlId(): ?int
+    public function getUrlId(): int
     {
         return $this->urlId;
     }
@@ -89,10 +90,10 @@ class Check
         $this->createdAt = $createdAt;
     }
 
-    public static function fromArray(array $checkData): Check
+    public static function fromArray(array $checkData): UrlCheck
     {
         [$urlId, $statusCode, $h1, $title, $description, $createdAt] = $checkData;
-        $check = new Check();
+        $check = new UrlCheck($urlId);
         $check->setUrlId($urlId);
         $check->setStatusCode($statusCode);
         $check->setH1($h1);

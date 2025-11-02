@@ -3,7 +3,6 @@
 namespace Hexlet\Code;
 
 use Valitron\Validator;
-use Illuminate\Support\Arr;
 
 class UrlValidator
 {

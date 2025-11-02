@@ -2,28 +2,30 @@
 
 namespace Hexlet\Code\Repositories;
 
-use Hexlet\Code\Check;
+use Hexlet\Code\Entities\UrlCheck;
 
-class CheckRepo extends BaseRepo
+class CheckRepository extends BaseRepository
 {
-    public function create(int $urlId, int $statusCode, array $data = []): Check
+    public function create(array $data = []): UrlCheck
     {
-        $check = new Check();
-        $check->setUrlId($urlId);
-        $check->setStatusCode($statusCode);
+        $check = new UrlCheck($data['url_id']);
+
+        $check->setStatusCode($data['status_code']);
         $check->setH1($data['h1'] ?? null);
         $check->setTitle($data['title'] ?? null);
         $check->setDescription($data['description'] ?? null);
-        $createdAt = $check->getCreatedAt();
+
         $sql = "INSERT INTO checks (url_id, status_code, h1, title, description, created_at)
                 VALUES (?, ?, ?, ?, ?, ?);";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([$urlId,
-                        $statusCode,
-                        $check->getH1(),
-                        $check->getTitle(),
-                        $check->getDescription(),
-                        $createdAt]);
+        $stmt->execute([
+            $check->getUrlId(),
+            $check->getStatusCode(),
+            $check->getH1(),
+            $check->getTitle(),
+            $check->getDescription(),
+            $check->getCreatedAt()
+        ]);
         $id = (int) $this->pdo->lastInsertId();
         $check->setId($id);
 
@@ -35,9 +37,9 @@ class CheckRepo extends BaseRepo
         return $this->getAllFromTable('checks');
     }
 
-    public function makeEntityFromRow(array $row): Check
+    public function makeEntityFromRow(array $row): UrlCheck
     {
-        $check = Check::fromArray([
+        $check = UrlCheck::fromArray([
             $row['url_id'],
             $row['status_code'],
             $row['h1'],
@@ -62,5 +64,15 @@ class CheckRepo extends BaseRepo
             $checks[] = $check;
         }
         return $checks;
+    }
+
+    public function getLastCheckForUrl(int $urlId): ?array
+    {
+        $sql = "SELECT status_code, created_at FROM checks WHERE url_id = ? ORDER BY created_at DESC LIMIT 1";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([$urlId]);
+        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        return $result ?: null;
     }
 }

@@ -2,11 +2,8 @@
 
 namespace Hexlet\Code;
 
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ClientException;
-use GuzzleHttp\Exception\ServerException;
+use GuzzleHttp\Client;;
 use GuzzleHttp\Exception\ConnectException;
-use GuzzleHttp\Exception\TooManyRedirectsException;
 use GuzzleHttp\Exception\RequestException;
 
 class Checker

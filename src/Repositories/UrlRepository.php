@@ -2,20 +2,21 @@
 
 namespace Hexlet\Code\Repositories;
 
-use PDO;
-use Hexlet\Code\Url;
+use Hexlet\Code\Entities\Url;
+use Hexlet\Code\Repositories\CheckRepository;
 
-class UrlRepo extends BaseRepo
+
+class UrlRepository extends BaseRepository
 {
     public function getAll(): array
     {
         return $this->getAllFromTable('urls');
     }
 
-    public function create(string $urlName): Url
+    public function create(array $data = []): Url
     {
-        $url = new Url();
-        $url->setUrlName($urlName);
+        $urlName = $data['name'];
+        $url = new Url($urlName);
         $createdAt = $url->getCreatedAt();
         $sql = "INSERT INTO urls (name, created_at) VALUES (?, ?)";
         $stmt = $this->pdo->prepare($sql);
@@ -58,15 +59,13 @@ class UrlRepo extends BaseRepo
         return $url;
     }
 
-    public function findAllWithLastCheck(): array
+        public function findAllWithLastCheck(CheckRepository $checkRepo): array
     {
         $urls = $this->getAll();
 
-
         $result = [];
         foreach ($urls as $url) {
-            $lastCheck = $this->getLastCheckForUrl($url->getId());
-
+            $lastCheck = $checkRepo->getLastCheckForUrl($url->getId());
 
             $urlData = [
                 'id' => $url->getId(),
@@ -79,15 +78,5 @@ class UrlRepo extends BaseRepo
         }
 
         return $result;
-    }
-
-    private function getLastCheckForUrl(int $urlId): ?array
-    {
-        $sql = "SELECT status_code, created_at FROM checks WHERE url_id = ? ORDER BY created_at DESC LIMIT 1";
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([$urlId]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        return $result ?: null;
     }
 }

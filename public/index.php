@@ -3,46 +3,31 @@
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Factory\AppFactory;
+use Slim\Exception\HttpNotFoundException;
 use DI\Container;
-use Hexlet\Code\Repositories\CheckRepo;
+use Hexlet\Code\Repositories\CheckRepository;
 use Hexlet\Code\UrlValidator;
 use Hexlet\Code\Connection;
-use Hexlet\Code\Repositories\UrlRepo;
+use Hexlet\Code\Repositories\UrlRepository;
 use Hexlet\Code\Checker;
 use DiDom\Document;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-//определяем среду окружения
-$isLocalEnvironment = file_exists(__DIR__ . '/../.env');
-
-//если есть файл .env загружаем переменные из него, если нет автоматом загрузится с рендера
-if ($isLocalEnvironment) {
-    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
-    $dotenv->load();
-    $dotenv->required(['DATABASE_URL']);
-}
-
-$dataBaseUrl = $_ENV['DATABASE_URL'] ?? getenv('DATABASE_URL');
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
+$dotenv->safeLoad();
+$dotenv->required(['DATABASE_URL']);
 
 session_start();
 
 $container = new Container();
 $app = AppFactory::createFromContainer($container);
 
+$dataBaseUrl = $_ENV['DATABASE_URL'] ?? getenv('DATABASE_URL');
+
 $container->set(\PDO::class, function () use ($dataBaseUrl) {
-    $pdo = new Connection();
-    return $pdo->createPdo($dataBaseUrl);
-});
-
-$container->set(UrlRepo::class, function (Container $container) {
-    $pdo = $container->get(\PDO::class);
-    return new UrlRepo($pdo);
-});
-
-$container->set(CheckRepo::class, function (Container $container) {
-    $pdo = $container->get(\PDO::class);
-    return new CheckRepo($pdo);
+    $connection = new Connection();
+    return $connection->createPdo($dataBaseUrl);
 });
 
 $container->set('renderer', function () {
@@ -58,7 +43,15 @@ $container->set('router', function () use ($app) {
     return $app->getRouteCollector()->getRouteParser();
 });
 
-$app->addErrorMiddleware(true, true, true);
+$errorMiddleware = $app->addErrorMiddleware(true, true, true);
+
+$errorMiddleware->setErrorHandler(
+    HttpNotFoundException::class,
+    function (Request $request, Throwable $exception) use ($app) {
+        $response = $app->getResponseFactory()->createResponse();
+        return $this->get('renderer')->render($response->withStatus(404), '404.phtml');
+    }
+);
 
 //обработчик стартовой страницы
 $app->get('/', function (Request $request, Response $response) {
@@ -69,8 +62,9 @@ $app->get('/', function (Request $request, Response $response) {
 //обработчик страницы с таблицей со всеми url'ами
 $app->get('/urls', function (Request $request, Response $response) {
 
-    $urlRepo = $this->get(UrlRepo::class);
-    $urls = $urlRepo->findAllWithLastCheck();
+    $urlRepo = $this->get(UrlRepository::class);
+    $checkRepo = $this->get(CheckRepository::class);
+    $urls = $urlRepo->findAllWithLastCheck($checkRepo);
 
     $messages = $this->get('flash')->getMessages();
 
@@ -81,7 +75,7 @@ $app->get('/urls', function (Request $request, Response $response) {
 
 //добавляем или нет новую запись в таблицу с url'ами
 $app->post('/urls', function (Request $request, Response $response) {
-    $urlRepo = $this->get(UrlRepo::class);
+    $urlRepo = $this->get(UrlRepository::class);
     $body = $request->getParsedBody();
     $urlName = '';
 
@@ -110,7 +104,7 @@ $app->post('/urls', function (Request $request, Response $response) {
     } else {
         // Если такого Url еще не существует - создаем новую запись в БД и редирект на страницу нового url
 
-        $newUrl = $urlRepo->create($domain);
+        $newUrl = $urlRepo->create(['name' => $domain]);
 
         $id = $newUrl->getId();
 
@@ -127,15 +121,15 @@ $app->get('/urls/{id:[0-9]+}', function (Request $request, Response $response, a
 
     $urlId = $args['id'];
 
-    $urlRepo = $this->get(UrlRepo::class);
+    $urlRepo = $this->get(UrlRepository::class);
     $url = $urlRepo->findById($urlId);
 
     //если в базе нет такого url, выводим 404
     if (is_null($url)) {
-        return $this->get('renderer')->render($response->withStatus(404), '404.phtml');
+        throw new HttpNotFoundException($request);
     }
 
-    $checkRepo = $this->get(CheckRepo::class);
+    $checkRepo = $this->get(CheckRepository::class);
     $checks = $checkRepo->getAllForUrlId($urlId);
 
     $messages = $this->get('flash')->getMessages();
@@ -151,15 +145,15 @@ $app->get('/urls/{id:[0-9]+}', function (Request $request, Response $response, a
 })->setName('urls.show');
 
 //обработчик с seo-проверкой url
-$app->post('/urls/{id}/checks', function (Request $request, Response $response, array $args) {
+$app->post('/urls/{id:[0-9]+}/checks', function (Request $request, Response $response, array $args) {
 
     $urlId = $args['id'];
 
-    $urlRepo = $this->get(UrlRepo::class);
+    $urlRepo = $this->get(UrlRepository::class);
     $url = $urlRepo->findById($urlId);
 
     if (is_null($url)) {
-        return $this->get('renderer')->render($response->withStatus(404), '404.phtml');
+        throw new HttpNotFoundException($request);
     }
 
     $urlName = (string) $url->getUrlName();
@@ -196,13 +190,15 @@ $app->post('/urls/{id}/checks', function (Request $request, Response $response, 
     $description = trim($description);
 
     $data = [
+        'url_id' => $urlId,
+        'status_code' => $statusCode,
         'h1' => $h1,
         'title' => $title,
         'description' => $description
     ];
 
-    $checkRepo = $this->get(CheckRepo::class);
-    $checkRepo->create($urlId, $statusCode, $data);
+    $checkRepo = $this->get(CheckRepository::class);
+    $checkRepo->create($data);
 
     $this->get('flash')->addMessage('success', 'Страница успешно проверена');
 
