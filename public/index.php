@@ -32,7 +32,9 @@ $container->set(\PDO::class, function () use ($dataBaseUrl) {
 
 $container->set('renderer', function () {
 
-    return new \Slim\Views\PhpRenderer(__DIR__ . '/../templates');
+    $renderer = new \Slim\Views\PhpRenderer(__DIR__ . '/../templates');
+    $renderer->setLayout('layout.phtml');
+    return $renderer;
 });
 
 $container->set('flash', function () {
@@ -56,7 +58,9 @@ $errorMiddleware->setErrorHandler(
 //обработчик стартовой страницы
 $app->get('/', function (Request $request, Response $response) {
 
-    return $this->get('renderer')->render($response, 'index.phtml');
+    $params = ['currentPage' => 'index'];
+
+    return $this->get('renderer')->render($response, 'index.phtml', $params);
 })->setName('index');
 
 //обработчик страницы с таблицей со всеми url'ами
@@ -68,7 +72,7 @@ $app->get('/urls', function (Request $request, Response $response) {
 
     $messages = $this->get('flash')->getMessages();
 
-    $params = ['urls' => $urls, 'flash' => $messages];
+    $params = ['urls' => $urls, 'flash' => $messages, 'currentPage' => 'urls'];
 
     return $this->get('renderer')->render($response, '/urls/index.phtml', $params);
 })->setName('urls.index');
@@ -87,7 +91,7 @@ $app->post('/urls', function (Request $request, Response $response) {
 
     if (!$validationResult['success']) {
         $errors = $validationResult['errors'];
-        $params = ['errors' => $errors, 'urlValue' => $urlName];
+        $params = ['errors' => $errors, 'urlValue' => $urlName, 'currentPage' => 'index'];
         $response = $response->withStatus(422);
         return $this->get('renderer')->render($response, 'index.phtml', $params);
     };
@@ -138,7 +142,8 @@ $app->get('/urls/{id:[0-9]+}', function (Request $request, Response $response, a
         'id' => $urlId,
         'url' => $url,
         'checks' => $checks,
-        'flash' => $messages
+        'flash' => $messages,
+        'currentPage' => 'urls'
     ];
 
     return $this->get('renderer')->render($response, '/urls/show.phtml', $params);
@@ -179,6 +184,9 @@ $app->post('/urls/{id:[0-9]+}/checks', function (Request $request, Response $res
     $h1Element = $document->first('h1');
     $h1 = $h1Element ? trim(optional($h1Element)->text()) : '';
 
+    $h1 = (string) optional($document->first('h1'))->text();
+
+
     $titleElement = $document->first('title');
     $title = $titleElement ? trim(optional($titleElement)->text()) : '';
 
@@ -209,7 +217,7 @@ $app->post('/urls/{id:[0-9]+}/checks', function (Request $request, Response $res
 
 // Обработчик для всех остальных маршрутов (404 ошибка)
 $app->any('/{routes:.+}', function (Request $request, Response $response) {
-    return $this->get('renderer')->render($response->withStatus(404), '404.phtml');
+    throw new HttpNotFoundException($request);
 });
 
 $app->run();

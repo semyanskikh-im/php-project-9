@@ -1,51 +1,31 @@
-<?php require_once 'header.html'; ?>
-<div class="collapse navbar-collapse" id="navbarNav">
-    <ul class="navbar-nav">
-        <li class="nav-item">
-            <a class="nav-link active" href="/">Главная</a>
-        </li>
+<div class="container-lg mt-3">
+    <div class="row">
+        <div class="col-12 col-md-10 col-lg-8 mx-auto border rounded-3 bg-light p-5">
+            <h1 class="display-3">Анализатор страниц</h1>
+            <p class="lead">Бесплатно проверяйте сайты на SEO пригодность</p>
+            <form action="/urls" method="post" class="row" required>
+                <div class="col-8">
+                    <label for="text" class="visually-hidden">Url для проверки</label>
+                    <input type="text" name="url[name]" value="<?= isset($urlValue) ? htmlspecialchars($urlValue) : '' ?>" class="form-control form-control-lg <?= isset($errors['url[name]']) ? 'is-invalid' : '' ?>"
+                        placeholder="https://www.example.com">
 
-        <li class="nav-item">
-            <a class="nav-link" href="/urls">Сайты</a>
-        </li>
+                    <!-- Вывод ошибок, если есть -->
+                    <?php if (isset($errors['url[name]'])): ?>
+                        <div class="invalid-feedback d-block">
+                            <?php foreach ($errors['url[name]'] as $error): ?>
+                                <div><?= htmlspecialchars($error) ?></div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
 
-    </ul>
-</div>
-</nav>
-</header>
+                <div class="col-2">
+                    <input type="submit" class="btn btn-primary btn-lg ms-3 px-5 text-uppercase mx-3"
+                        value="Проверить">
+                </div>
 
-<main class="flex-grow-1">
-    <div class="container-lg mt-3">
-        <div class="row">
-            <div class="col-12 col-md-10 col-lg-8 mx-auto border rounded-3 bg-light p-5">
-                <h1 class="display-3">Анализатор страниц</h1>
-                <p class="lead">Бесплатно проверяйте сайты на SEO пригодность</p>
-                <form action="/urls" method="post" class="row" required>
-                    <div class="col-8">
-                        <label for="text" class="visually-hidden">Url для проверки</label>
-                        <input type="text" name="url[name]" value="<?= isset($urlValue) ? htmlspecialchars($urlValue) : '' ?>" class="form-control form-control-lg <?= isset($errors['url[name]']) ? 'is-invalid' : '' ?>"
-                            placeholder="https://www.example.com">
+            </form>
 
-                        <!-- Вывод ошибок, если есть -->
-                        <?php if (isset($errors['url[name]'])): ?>
-                            <div class="invalid-feedback d-block">
-                                <?php foreach ($errors['url[name]'] as $error): ?>
-                                    <div><?= htmlspecialchars($error) ?></div>
-                                <?php endforeach; ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-
-                    <div class="col-2">
-                        <input type="submit" class="btn btn-primary btn-lg ms-3 px-5 text-uppercase mx-3"
-                            value="Проверить">
-                    </div>
-
-                </form>
-
-            </div>
         </div>
     </div>
-</main>
-
-<?php require_once 'footer.html'; ?>
+</div>

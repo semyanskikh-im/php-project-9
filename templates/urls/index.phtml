@@ -1,66 +1,34 @@
-<?php require_once __DIR__ . '/../header.html'; ?>
+<div class="container-lg mt-3">
+    <h1>Сайты</h1>
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover text-nowrap" data-test="urls">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Имя</th>
+                    <th>Последняя проверка</th>
+                    <th>Код ответа</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (isset($urls)): ?>
 
-<div class="collapse navbar-collapse" id="navbarNav">
-    <ul class="navbar-nav">
-        <li class="nav-item">
-            <a class="nav-link" href="/">Главная</a>
-        </li>
-
-        <li class="nav-item">
-            <a class="nav-link active" href="/urls">Сайты</a>
-        </li>
-
-    </ul>
-</div>
-</nav>
-</header>
-
-<?php if (count($flash) > 0) : ?>
-    <?php foreach ($flash as $type => $messages) : ?>
-        <?php foreach ($messages as $message) : ?>
-            <div class="alert alert-<?= $type ?>" role="alert">
-                <?= $message ?>
-            </div>
-        <?php endforeach ?>
-    <?php endforeach ?>
-<?php endif ?>
-
-
-<main class="flex-grow-1">
-    <div class="container-lg mt-3">
-        <h1>Сайты</h1>
-        <div class="table-responsive">
-            <table class="table table-bordered table-hover text-nowrap" data-test="urls">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Имя</th>
-                        <th>Последняя проверка</th>
-                        <th>Код ответа</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (isset($urls)): ?>
-
-                        <?php foreach ($urls as $url): ?>
-                            <?php
-                            $id = htmlspecialchars($url['id']);
-                            $name = htmlspecialchars($url['name']);
-                            $createdAt = htmlspecialchars($url['last_check']['created_at'] ?? '');
-                            $statusCode = htmlspecialchars($url['last_check']['status_code'] ?? '');
-                            ?>
-                            <tr>
-                                <td><?= $id ?></td>
-                                <td><a href="/urls/<?= $id ?>"> <?= $name ?></a></td>
-                                <td><?= $createdAt ?></td>
-                                <td><?= $statusCode ?></td>
-                            </tr>
-                        <?php endforeach ?>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
+                    <?php foreach ($urls as $url): ?>
+                        <?php
+                        $id = htmlspecialchars($url['id']);
+                        $name = htmlspecialchars($url['name']);
+                        $createdAt = htmlspecialchars($url['last_check']['created_at'] ?? '');
+                        $statusCode = htmlspecialchars($url['last_check']['status_code'] ?? '');
+                        ?>
+                        <tr>
+                            <td><?= $id ?></td>
+                            <td><a href="/urls/<?= $id ?>"> <?= $name ?></a></td>
+                            <td><?= $createdAt ?></td>
+                            <td><?= $statusCode ?></td>
+                        </tr>
+                    <?php endforeach ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
     </div>
-</main>
-
-<?php require_once __DIR__ . '/../footer.html'; ?>
+</div>
