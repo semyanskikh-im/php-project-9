@@ -8,38 +8,38 @@ class CheckRepository extends BaseRepository
 {
     public function create(array $data = []): UrlCheck
     {
-        $check = new UrlCheck($data['url_id']);
+        $urlCheck = new UrlCheck($data['url_id']);
 
-        $check->setStatusCode($data['status_code']);
-        $check->setH1($data['h1'] ?? null);
-        $check->setTitle($data['title'] ?? null);
-        $check->setDescription($data['description'] ?? null);
+        $urlCheck->setStatusCode($data['status_code']);
+        $urlCheck->setH1($data['h1'] ?? null);
+        $urlCheck->setTitle($data['title'] ?? null);
+        $urlCheck->setDescription($data['description'] ?? null);
 
-        $sql = "INSERT INTO checks (url_id, status_code, h1, title, description, created_at)
+        $sql = "INSERT INTO url_checks (url_id, status_code, h1, title, description, created_at)
                 VALUES (?, ?, ?, ?, ?, ?);";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
-            $check->getUrlId(),
-            $check->getStatusCode(),
-            $check->getH1(),
-            $check->getTitle(),
-            $check->getDescription(),
-            $check->getCreatedAt()
+            $urlCheck->getUrlId(),
+            $urlCheck->getStatusCode(),
+            $urlCheck->getH1(),
+            $urlCheck->getTitle(),
+            $urlCheck->getDescription(),
+            $urlCheck->getCreatedAt()
         ]);
         $id = (int) $this->pdo->lastInsertId();
-        $check->setId($id);
+        $urlCheck->setId($id);
 
-        return $check;
+        return $urlCheck;
     }
 
     public function getAll(): array
     {
-        return $this->getAllFromTable('checks');
+        return $this->getAllFromTable('url_checks');
     }
 
     public function makeEntityFromRow(array $row): UrlCheck
     {
-        $check = UrlCheck::fromArray([
+        $urlCheck = UrlCheck::fromArray([
             $row['url_id'],
             $row['status_code'],
             $row['h1'],
@@ -47,15 +47,15 @@ class CheckRepository extends BaseRepository
             $row['description'],
             $row['created_at']
         ]);
-        $check->setId($row['id']);
+        $urlCheck->setId($row['id']);
 
-        return $check;
+        return $urlCheck;
     }
 
     public function getAllForUrlId(int $urlId): array
     {
         $checks = [];
-        $sql = "SELECT * FROM checks WHERE url_id = ?";
+        $sql = "SELECT * FROM url_checks WHERE url_id = ?";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([$urlId]);
 
@@ -68,7 +68,7 @@ class CheckRepository extends BaseRepository
 
     public function getLastCheckForUrl(int $urlId): ?array
     {
-        $sql = "SELECT status_code, created_at FROM checks WHERE url_id = ? ORDER BY created_at DESC LIMIT 1";
+        $sql = "SELECT status_code, created_at FROM url_checks WHERE url_id = ? ORDER BY created_at DESC LIMIT 1";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([$urlId]);
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
