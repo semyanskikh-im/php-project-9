@@ -10,11 +10,9 @@
                         placeholder="https://www.example.com">
 
                     <!-- Вывод ошибок, если есть -->
-                    <?php if (isset($errors['url[name]'])): ?>
+                    <?php if (isset($errors['url.name'])): ?>
                         <div class="invalid-feedback d-block">
-                            <?php foreach ($errors['url[name]'] as $error): ?>
-                                <div><?= htmlspecialchars($error) ?></div>
-                            <?php endforeach; ?>
+                            <?= htmlspecialchars($errors['url.name'][0]) ?>
                         </div>
                     <?php endif; ?>
                 </div>

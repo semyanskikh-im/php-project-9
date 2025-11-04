@@ -2,7 +2,7 @@
 
 namespace Hexlet\Code;
 
-use GuzzleHttp\Client;;
+use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
 

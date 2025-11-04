@@ -5,7 +5,6 @@ namespace Hexlet\Code\Repositories;
 use Hexlet\Code\Entities\Url;
 use Hexlet\Code\Repositories\CheckRepository;
 
-
 class UrlRepository extends BaseRepository
 {
     public function getAll(): array
@@ -59,7 +58,7 @@ class UrlRepository extends BaseRepository
         return $url;
     }
 
-        public function findAllWithLastCheck(CheckRepository $checkRepo): array
+    public function findAllWithLastCheck(CheckRepository $checkRepo): array
     {
         $urls = $this->getAll();
 

@@ -6,7 +6,7 @@ use Slim\Factory\AppFactory;
 use Slim\Exception\HttpNotFoundException;
 use DI\Container;
 use Hexlet\Code\Repositories\CheckRepository;
-use Hexlet\Code\UrlValidator;
+use Valitron\Validator;
 use Hexlet\Code\Connection;
 use Hexlet\Code\Repositories\UrlRepository;
 use Hexlet\Code\Checker;
@@ -79,24 +79,30 @@ $app->get('/urls', function (Request $request, Response $response) {
 
 //добавляем или нет новую запись в таблицу с url'ами
 $app->post('/urls', function (Request $request, Response $response) {
-    $urlRepo = $this->get(UrlRepository::class);
+
     $body = $request->getParsedBody();
-    $urlName = '';
 
-    if (is_array($body)) {
-        $urlName = strtolower($body['url']['name']);
-    }
-    //здесь происходит валидация
-    $validationResult = UrlValidator::validate(['url[name]' => $urlName]);
+    $v = new Validator($body);
 
-    if (!$validationResult['success']) {
-        $errors = $validationResult['errors'];
+    $v->rule('required', 'url.name')->message('URL не должен быть пустым!');
+    $v->rule('lengthMax', 'url.name', 255)->message('URL не должен превышать 255 символов!');
+    $v->rule('url', 'url.name')->message('Некорректный URL!');
+
+    if (!$v->validate()) {
+        $errors = $v->errors();
+        $urlName = $body['url']['name'];
         $params = ['errors' => $errors, 'urlValue' => $urlName, 'currentPage' => 'index'];
         $response = $response->withStatus(422);
         return $this->get('renderer')->render($response, 'index.phtml', $params);
-    };
+    }
 
-    $domain = UrlValidator::extractDomain($urlName);
+    $urlName = strtolower($body['url']['name']);
+    $parsedUrl = parse_url($urlName);
+    $scheme = $parsedUrl['scheme'];
+    $host = $parsedUrl['host'];
+    $domain = "{$scheme}://{$host}";
+
+    $urlRepo = $this->get(UrlRepository::class);
 
     $existingUrl = $urlRepo->findByName($domain);
 
