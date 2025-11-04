@@ -10,7 +10,7 @@ class Url
     private string $urlName;
     private string $createdAt;
 
-    public function __construct($urlName)
+    public function __construct(string $urlName)
     {
         $this->urlName = $urlName;
         $this->createdAt = Carbon::now()->toDateTimeString();

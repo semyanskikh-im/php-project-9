@@ -14,7 +14,7 @@ class UrlCheck
     private ?string $description = null;
     private string $createdAt;
 
-    public function __construct($urlId)
+    public function __construct(int $urlId)
     {
         $this->urlId = $urlId;
         $this->createdAt = Carbon::now()->toDateTimeString();

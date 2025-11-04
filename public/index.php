@@ -82,6 +82,13 @@ $app->post('/urls', function (Request $request, Response $response) {
 
     $body = $request->getParsedBody();
 
+    $body = match (true) {
+        is_array($body) => $body,
+        is_object($body) => (array)$body,
+        is_string($body) => json_decode($body, true) ?? [],
+        default => []
+    };
+
     $v = new Validator($body);
 
     $v->rule('required', 'url.name')->message('URL не должен быть пустым!');
