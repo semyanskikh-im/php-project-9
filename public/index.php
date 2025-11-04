@@ -222,7 +222,7 @@ $app->post('/urls/{id:[0-9]+}/checks', function (Request $request, Response $res
 });
 
 // Обработчик для всех остальных маршрутов (404 ошибка)
-$app->any('/{routes:.+}', function (Request $request, Response $response) {
+$app->any('/{routes:.+}', function (Request $request) {
     throw new HttpNotFoundException($request);
 });
 
