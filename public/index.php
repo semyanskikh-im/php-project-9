@@ -196,9 +196,6 @@ $app->post('/urls/{id:[0-9]+}/checks', function (Request $request, Response $res
     $h1Element = $document->first('h1');
     $h1 = $h1Element ? trim(optional($h1Element)->text()) : '';
 
-    $h1 = (string) optional($document->first('h1'))->text();
-
-
     $titleElement = $document->first('title');
     $title = $titleElement ? trim(optional($titleElement)->text()) : '';
 
