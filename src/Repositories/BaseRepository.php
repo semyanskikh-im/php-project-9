@@ -13,7 +13,7 @@ abstract class BaseRepository
         $this->pdo = $pdo;
     }
 
-    public function getAllFromTable(string $tableName): array
+    protected function getAllFromTable(string $tableName): array // возвращается массив объектов класса Url
     {
         $items = [];
         $sql = "SELECT * FROM {$tableName} ORDER BY created_at ASC";
