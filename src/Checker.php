@@ -24,13 +24,6 @@ class Checker
         }
         try {
             $response = $this->client->request('GET', $url);
-            $statusCode = $response->getStatusCode();
-            $html = (string) $response->getBody();
-            return [
-                'success' => true,
-                'statusCode' => $statusCode,
-                'html' => $html
-            ];
         } catch (ConnectException $e) {
             return [
                 'success' => false
@@ -41,14 +34,14 @@ class Checker
             if (!$response) {
                 return ['success' => false];
             }
-
-            $statusCode = $response->getStatusCode();
-            $html = (string) $response->getBody();
-            return [
-                'success' => true,
-                'statusCode' => $statusCode,
-                'html' => $html
-            ];
         }
+
+        $statusCode = $response->getStatusCode();
+        $html = (string) $response->getBody();
+        return [
+            'success' => true,
+            'statusCode' => $statusCode,
+            'html' => $html
+        ];
     }
 }
