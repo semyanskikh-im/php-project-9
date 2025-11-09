@@ -4,24 +4,29 @@ namespace Hexlet\Code\Repositories;
 
 use Hexlet\Code\Entities\Url;
 use Hexlet\Code\Repositories\CheckRepository;
+use Carbon\Carbon;
 
 class UrlRepository extends BaseRepository
 {
-    public function getAll(): array
+    public function getAll(): array //возвращается массив объектов класса Url
     {
         return $this->getAllFromTable('urls');
     }
 
     public function create(array $data = []): Url
     {
-        $urlName = $data['name'];
-        $url = new Url($urlName);
-        $createdAt = $url->getCreatedAt();
         $sql = "INSERT INTO urls (name, created_at) VALUES (?, ?)";
         $stmt = $this->pdo->prepare($sql);
+
+        $urlName = $data['name'];
+        $createdAt = Carbon::now()->toDateTimeString();
+
         $stmt->execute([$urlName, $createdAt]);
+
         $id = (int) $this->pdo->lastInsertId();
+        $url = new Url($urlName);
         $url->setId($id);
+        $url->setCreatedAt($createdAt);
 
         return $url;
     }
@@ -58,22 +63,43 @@ class UrlRepository extends BaseRepository
         return $url;
     }
 
-    public function findAllWithLastCheck(CheckRepository $checkRepo): array
+    // public function findAllWithLastCheck(CheckRepository $checkRepo): array
+    // {
+    //     $urls = $this->getAll();
+
+    //     $result = [];
+    //     foreach ($urls as $url) {
+    //         $lastCheck = $checkRepo->getLastCheckForUrl($url->getId());
+
+    //         $urlData = [
+    //             'id' => $url->getId(),
+    //             'name' => $url->getUrlName(),
+    //             'created_at' => $url->getCreatedAt(),
+    //             'last_check' => $lastCheck
+    //         ];
+
+    //         $result[] = $urlData;
+    //     }
+
+    //     return $result;
+    // }
+
+    public function findAllWithLastCheck(CheckRepository $checkRepository): array
     {
         $urls = $this->getAll();
 
+        $lastChecks = $checkRepository->findLastChecks();
+
         $result = [];
         foreach ($urls as $url) {
-            $lastCheck = $checkRepo->getLastCheckForUrl($url->getId());
+            $urlId = $url->getId();
 
-            $urlData = [
-                'id' => $url->getId(),
+            $result[] = [
+                'id' => $urlId,
                 'name' => $url->getUrlName(),
-                'created_at' => $url->getCreatedAt(),
-                'last_check' => $lastCheck
+                'created_at' => $lastChecks[$urlId]['created_at'] ?? null,
+                'status_code' => $lastChecks[$urlId]['status_code'] ?? null
             ];
-
-            $result[] = $urlData;
         }
 
         return $result;

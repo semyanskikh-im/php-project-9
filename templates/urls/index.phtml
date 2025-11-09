@@ -17,8 +17,8 @@
                         <?php
                         $id = htmlspecialchars($url['id']);
                         $name = htmlspecialchars($url['name']);
-                        $createdAt = htmlspecialchars($url['last_check']['created_at'] ?? '');
-                        $statusCode = htmlspecialchars($url['last_check']['status_code'] ?? '');
+                        $createdAt = htmlspecialchars($url['created_at'] ?? '');
+                        $statusCode = htmlspecialchars($url['status_code'] ?? '');
                         ?>
                         <tr>
                             <td><?= $id ?></td>

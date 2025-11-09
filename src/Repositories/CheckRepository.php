@@ -3,31 +3,37 @@
 namespace Hexlet\Code\Repositories;
 
 use Hexlet\Code\Entities\UrlCheck;
+use Carbon\Carbon;
 
 class CheckRepository extends BaseRepository
 {
     public function create(array $data = []): UrlCheck
     {
-        $urlCheck = new UrlCheck($data['url_id']);
-
-        $urlCheck->setStatusCode($data['status_code']);
-        $urlCheck->setH1($data['h1'] ?? null);
-        $urlCheck->setTitle($data['title'] ?? null);
-        $urlCheck->setDescription($data['description'] ?? null);
-
         $sql = "INSERT INTO url_checks (url_id, status_code, h1, title, description, created_at)
                 VALUES (?, ?, ?, ?, ?, ?);";
         $stmt = $this->pdo->prepare($sql);
+
+        $createdAt = Carbon::now()->toDateTimeString();
+
         $stmt->execute([
-            $urlCheck->getUrlId(),
-            $urlCheck->getStatusCode(),
-            $urlCheck->getH1(),
-            $urlCheck->getTitle(),
-            $urlCheck->getDescription(),
-            $urlCheck->getCreatedAt()
+            $data['url_id'],
+            $data['status_code'],
+            $data['h1'],
+            $data['title'],
+            $data['description'],
+            $createdAt
         ]);
+
         $id = (int) $this->pdo->lastInsertId();
+        $urlCheck = new UrlCheck(
+            $data['url_id'],
+            $data['status_code'],
+            $data['h1'],
+            $data['title'],
+            $data['description']
+        );
         $urlCheck->setId($id);
+        $urlCheck->setCreatedAt($createdAt);
 
         return $urlCheck;
     }
@@ -55,7 +61,7 @@ class CheckRepository extends BaseRepository
     public function getAllForUrlId(int $urlId): array
     {
         $checks = [];
-        $sql = "SELECT * FROM url_checks WHERE url_id = ?";
+        $sql = "SELECT * FROM url_checks WHERE url_id = ? ORDER BY id DESC";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([$urlId]);
 
@@ -66,13 +72,23 @@ class CheckRepository extends BaseRepository
         return $checks;
     }
 
-    public function getLastCheckForUrl(int $urlId): ?array
+    public function findLastChecks(): array
     {
-        $sql = "SELECT status_code, created_at FROM url_checks WHERE url_id = ? ORDER BY created_at DESC LIMIT 1";
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([$urlId]);
-        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $sql = "SELECT DISTINCT ON (url_id)
+                url_id, status_code, created_at 
+                FROM url_checks 
+                ORDER BY url_id, created_at DESC";
 
-        return $result ?: null;
+        $stmt = $this->pdo->query($sql);
+
+        $lastChecks = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $lastChecks[$row['url_id']] = [
+                'status_code' => $row['status_code'],
+                'created_at' => $row['created_at']
+            ];
+        }
+
+        return $lastChecks;
     }
 }
