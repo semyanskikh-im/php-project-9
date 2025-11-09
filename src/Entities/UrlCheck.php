@@ -2,22 +2,28 @@
 
 namespace Hexlet\Code\Entities;
 
-use Carbon\Carbon;
-
 class UrlCheck
 {
     private ?int $id = null;
     private int $urlId;
-    private ?int $statusCode = null;
-    private ?string $h1 = null;
-    private ?string $title = null;
-    private ?string $description = null;
-    private string $createdAt;
+    private int $statusCode;
+    private string $h1;
+    private string $title;
+    private string $description;
+    private ?string $createdAt = null;
 
-    public function __construct(int $urlId)
-    {
+    public function __construct(
+        int $urlId,
+        int $statusCode,
+        string $h1,
+        string $title,
+        string $description
+    ) {
         $this->urlId = $urlId;
-        $this->createdAt = Carbon::now()->toDateTimeString();
+        $this->statusCode = $statusCode;
+        $this->h1 = $h1;
+        $this->title = $title;
+        $this->description = $description;
     }
 
     public function getUrlId(): int
@@ -30,22 +36,22 @@ class UrlCheck
         return $this->id;
     }
 
-    public function getStatusCode(): ?int
+    public function getStatusCode(): int
     {
         return $this->statusCode;
     }
 
-    public function getH1(): ?string
+    public function getH1(): string
     {
         return $this->h1;
     }
 
-    public function getDescription(): ?string
+    public function getDescription(): string
     {
         return $this->description;
     }
 
-    public function getTitle(): ?string
+    public function getTitle(): string
     {
         return $this->title;
     }
@@ -65,22 +71,22 @@ class UrlCheck
         $this->urlId = $urlId;
     }
 
-    public function setStatusCode(?int $statusCode): void
+    public function setStatusCode(int $statusCode): void
     {
         $this->statusCode = $statusCode;
     }
 
-    public function setH1(?string $h1): void
+    public function setH1(string $h1): void
     {
         $this->h1 = $h1;
     }
 
-    public function setTitle(?string $title): void
+    public function setTitle(string $title): void
     {
         $this->title = $title;
     }
 
-    public function setDescription(?string $description): void
+    public function setDescription(string $description): void
     {
         $this->description = $description;
     }
@@ -93,12 +99,7 @@ class UrlCheck
     public static function fromArray(array $checkData): UrlCheck
     {
         [$urlId, $statusCode, $h1, $title, $description, $createdAt] = $checkData;
-        $check = new UrlCheck($urlId);
-        $check->setUrlId($urlId);
-        $check->setStatusCode($statusCode);
-        $check->setH1($h1);
-        $check->setTitle($title);
-        $check->setDescription($description);
+        $check = new UrlCheck($urlId, $statusCode, $h1, $title, $description);
         $check->setCreatedAt($createdAt);
         return $check;
     }
