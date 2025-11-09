@@ -2,18 +2,15 @@
 
 namespace Hexlet\Code\Entities;
 
-use Carbon\Carbon;
-
 class Url
 {
     private ?int $id = null;
     private string $urlName;
-    private string $createdAt;
+    private ?string $createdAt = null;
 
     public function __construct(string $urlName)
     {
         $this->urlName = $urlName;
-        $this->createdAt = Carbon::now()->toDateTimeString();
     }
 
     public function getId(): ?int
@@ -50,7 +47,6 @@ class Url
     {
         [$urlName, $createdAt] = $urlData;
         $url = new Url($urlName);
-        $url->setUrlName($urlName);
         $url->setCreatedAt($createdAt);
         return $url;
     }
