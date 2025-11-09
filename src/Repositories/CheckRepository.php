@@ -76,10 +76,14 @@ class CheckRepository extends BaseRepository
     {
         $sql = "SELECT DISTINCT ON (url_id)
                 url_id, status_code, created_at 
-                FROM url_checks 
+                FROM url_checks
                 ORDER BY url_id, created_at DESC";
 
         $stmt = $this->pdo->query($sql);
+
+        if ($stmt === false) {
+            return [];
+        }
 
         $lastChecks = [];
         while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
