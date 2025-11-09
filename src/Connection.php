@@ -20,15 +20,10 @@ class Connection
         $user = $params['user'] ?? '';
         $pass = $params['pass'] ?? '';
 
+        $pdo = new PDO($dns, $user, $pass);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 
-        try {
-            $pdo = new PDO($dns, $user, $pass);
-            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-
-            return $pdo;
-        } catch (PDOException $e) {
-            throw new \RuntimeException("Database connection failed: " . $e->getMessage());
-        }
+        return $pdo;
     }
 }
