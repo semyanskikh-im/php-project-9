@@ -23,9 +23,8 @@ session_start();
 $container = new Container();
 $app = AppFactory::createFromContainer($container);
 
-$dataBaseUrl = $_ENV['DATABASE_URL'] ?? getenv('DATABASE_URL');
-
-$container->set(\PDO::class, function () use ($dataBaseUrl) {
+$container->set(\PDO::class, function () {
+    $dataBaseUrl = $_ENV['DATABASE_URL'] ?? getenv('DATABASE_URL');
     $connection = new Connection();
     return $connection->createPdo($dataBaseUrl);
 });
@@ -80,16 +79,9 @@ $app->get('/urls', function (Request $request, Response $response) {
 //добавляем или нет новую запись в таблицу с url'ами
 $app->post('/urls', function (Request $request, Response $response) {
 
-    $body = $request->getParsedBody();
-
-    $body = match (true) {
-        is_array($body) => $body,
-        is_object($body) => (array)$body,
-        default => []
-    };
+    $body = (array) $request->getParsedBody();
 
     $v = new Validator($body);
-
     $v->rule('required', 'url.name')->message('URL не должен быть пустым!');
     $v->rule('lengthMax', 'url.name', 255)->message('URL не должен превышать 255 символов!');
     $v->rule('url', 'url.name')->message('Некорректный URL!');
@@ -102,7 +94,7 @@ $app->post('/urls', function (Request $request, Response $response) {
         return $this->get('renderer')->render($response, 'index.phtml', $params);
     }
 
-    $urlName = strtolower($body['url']['name']);
+    $urlName = mb_strtolower($body['url']['name']);
     $parsedUrl = parse_url($urlName);
     $scheme = $parsedUrl['scheme'];
     $host = $parsedUrl['host'];
@@ -199,10 +191,7 @@ $app->post('/urls/{id:[0-9]+}/checks', function (Request $request, Response $res
     $titleElement = $document->first('title');
     $title = $titleElement ? trim(optional($titleElement)->text()) : '';
 
-
     $metaElement = $document->first('meta[name="description"]');
-
-
     $description = $metaElement?->getAttribute('content') ?? '';
     $description = trim($description);
 
@@ -222,11 +211,6 @@ $app->post('/urls/{id:[0-9]+}/checks', function (Request $request, Response $res
     return $response
         ->withHeader('Location', $this->get('router')->urlFor('urls.show', ['id' => $urlId]))
         ->withStatus(302);
-});
-
-// Обработчик для всех остальных маршрутов (404 ошибка)
-$app->any('/{routes:.+}', function (Request $request) {
-    throw new HttpNotFoundException($request);
 });
 
 $app->run();
