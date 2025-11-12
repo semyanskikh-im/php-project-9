@@ -3,7 +3,7 @@
 namespace Hexlet\Code\Repositories;
 
 use Hexlet\Code\Entities\Url;
-use Hexlet\Code\Repositories\CheckRepository;
+use Hexlet\Code\Repositories\UrlCheckRepository;
 use Carbon\Carbon;
 
 class UrlRepository extends BaseRepository
@@ -63,28 +63,7 @@ class UrlRepository extends BaseRepository
         return $url;
     }
 
-    // public function findAllWithLastCheck(CheckRepository $checkRepo): array
-    // {
-    //     $urls = $this->getAll();
-
-    //     $result = [];
-    //     foreach ($urls as $url) {
-    //         $lastCheck = $checkRepo->getLastCheckForUrl($url->getId());
-
-    //         $urlData = [
-    //             'id' => $url->getId(),
-    //             'name' => $url->getUrlName(),
-    //             'created_at' => $url->getCreatedAt(),
-    //             'last_check' => $lastCheck
-    //         ];
-
-    //         $result[] = $urlData;
-    //     }
-
-    //     return $result;
-    // }
-
-    public function findAllWithLastCheck(CheckRepository $checkRepository): array
+    public function findAllWithLastCheck(UrlCheckRepository $checkRepository): array
     {
         $urls = $this->getAll();
 
