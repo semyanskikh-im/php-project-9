@@ -6,7 +6,7 @@
             <form action="/urls" method="post" class="row" required>
                 <div class="col-8">
                     <label for="text" class="visually-hidden">Url для проверки</label>
-                    <input type="text" name="url[name]" value="<?= isset($urlValue) ? htmlspecialchars($urlValue) : '' ?>" class="form-control form-control-lg <?= isset($errors['url[name]']) ? 'is-invalid' : '' ?>"
+                    <input type="text" name="url[name]" value="<?= isset($urlValue) ? htmlspecialchars($urlValue) : '' ?>" class="form-control form-control-lg <?= isset($errors['url.name']) ? 'is-invalid' : '' ?>"
                         placeholder="https://www.example.com">
 
                     <!-- Вывод ошибок, если есть -->
