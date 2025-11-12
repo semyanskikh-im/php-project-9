@@ -5,7 +5,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Factory\AppFactory;
 use Slim\Exception\HttpNotFoundException;
 use DI\Container;
-use Hexlet\Code\Repositories\CheckRepository;
+use Hexlet\Code\Repositories\UrlCheckRepository;
 use Valitron\Validator;
 use Hexlet\Code\Connection;
 use Hexlet\Code\Repositories\UrlRepository;
@@ -66,7 +66,7 @@ $app->get('/', function (Request $request, Response $response) {
 $app->get('/urls', function (Request $request, Response $response) {
 
     $urlRepo = $this->get(UrlRepository::class);
-    $checkRepo = $this->get(CheckRepository::class);
+    $checkRepo = $this->get(UrlCheckRepository::class);
     $urls = $urlRepo->findAllWithLastCheck($checkRepo);
 
     $messages = $this->get('flash')->getMessages();
@@ -137,7 +137,7 @@ $app->get('/urls/{id:[0-9]+}', function (Request $request, Response $response, a
         throw new HttpNotFoundException($request);
     }
 
-    $checkRepo = $this->get(CheckRepository::class);
+    $checkRepo = $this->get(UrlCheckRepository::class);
     $checks = $checkRepo->getAllForUrlId($urlId);
 
     $messages = $this->get('flash')->getMessages();
@@ -203,7 +203,7 @@ $app->post('/urls/{id:[0-9]+}/checks', function (Request $request, Response $res
         'description' => $description
     ];
 
-    $checkRepo = $this->get(CheckRepository::class);
+    $checkRepo = $this->get(UrlCheckRepository::class);
     $checkRepo->create($data);
 
     $this->get('flash')->addMessage('success', 'Страница успешно проверена');

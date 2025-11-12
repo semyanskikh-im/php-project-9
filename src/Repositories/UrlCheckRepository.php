@@ -5,7 +5,7 @@ namespace Hexlet\Code\Repositories;
 use Hexlet\Code\Entities\UrlCheck;
 use Carbon\Carbon;
 
-class CheckRepository extends BaseRepository
+class UrlCheckRepository extends BaseRepository
 {
     public function create(array $data = []): UrlCheck
     {
