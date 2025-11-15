@@ -15,13 +15,8 @@ class Checker
         $this->client = new Client(['timeout' => 5]);
     }
 
-    public function checkUrl(?string $url): array
+    public function checkUrl(string $url): array
     {
-        if ($url === null) {
-            return [
-                'success' => false
-            ];
-        }
         try {
             $response = $this->client->request('GET', $url);
         } catch (ConnectException $e) {
