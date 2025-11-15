@@ -29,19 +29,22 @@ $container->set(\PDO::class, function () {
     return $connection->createPdo($dataBaseUrl);
 });
 
-$container->set('renderer', function () {
-
-    $renderer = new \Slim\Views\PhpRenderer(__DIR__ . '/../templates');
-    $renderer->setLayout('layout.phtml');
-    return $renderer;
-});
-
 $container->set('flash', function () {
     return new \Slim\Flash\Messages();
 });
 
 $container->set('router', function () use ($app) {
     return $app->getRouteCollector()->getRouteParser();
+});
+
+$container->set('renderer', function () use ($container) {
+
+    $renderer = new \Slim\Views\PhpRenderer(__DIR__ . '/../templates');
+    $renderer->setLayout('layout.phtml');
+    $renderer->addAttribute('currentPage', '');
+    $renderer->addAttribute('flash', $container->get('flash')->getMessages());
+    $renderer->addAttribute('router', $container->get('router'));
+    return $renderer;
 });
 
 $errorMiddleware = $app->addErrorMiddleware(true, true, true);
@@ -57,9 +60,9 @@ $errorMiddleware->setErrorHandler(
 //обработчик стартовой страницы
 $app->get('/', function (Request $request, Response $response) {
 
-    $params = ['currentPage' => 'index'];
+    $this->get('renderer')->addAttribute('currentPage', 'index');
 
-    return $this->get('renderer')->render($response, 'index.phtml', $params);
+    return $this->get('renderer')->render($response, 'index.phtml');
 })->setName('index');
 
 //обработчик страницы с таблицей со всеми url'ами
@@ -67,12 +70,24 @@ $app->get('/urls', function (Request $request, Response $response) {
 
     $urlRepo = $this->get(UrlRepository::class);
     $checkRepo = $this->get(UrlCheckRepository::class);
-    $urls = $urlRepo->findAllWithLastCheck($checkRepo);
 
-    $messages = $this->get('flash')->getMessages();
+    $urls = $urlRepo->getAll();
+    $lastChecks = $checkRepo->findLastChecks();
 
-    $params = ['urls' => $urls, 'flash' => $messages, 'currentPage' => 'urls'];
+    $urlsWithLastCheck = [];
+    foreach ($urls as $url) {
+        $urlId = $url->getId();
 
+        $urlsWithLastCheck[] = [
+            'id' => $urlId,
+            'name' => $url->getUrlName(),
+            'created_at' => $lastChecks[$urlId]['created_at'] ?? null,
+            'status_code' => $lastChecks[$urlId]['status_code'] ?? null
+        ];
+    }
+    $params = ['urls' => $urlsWithLastCheck];
+
+    $this->get('renderer')->addAttribute('currentPage', 'urls');
     return $this->get('renderer')->render($response, '/urls/index.phtml', $params);
 })->setName('urls.index');
 
@@ -122,7 +137,7 @@ $app->post('/urls', function (Request $request, Response $response) {
     return $response
         ->withHeader('Location', $this->get('router')->urlFor('urls.show', ['id' => $id]))
         ->withStatus(302);
-});
+})->setName('urls.store');
 
 //вывод страницы конкретного url
 $app->get('/urls/{id:[0-9]+}', function (Request $request, Response $response, array $args) {
@@ -140,14 +155,12 @@ $app->get('/urls/{id:[0-9]+}', function (Request $request, Response $response, a
     $checkRepo = $this->get(UrlCheckRepository::class);
     $checks = $checkRepo->getAllForUrlId($urlId);
 
-    $messages = $this->get('flash')->getMessages();
+    $this->get('renderer')->addAttribute('currentPage', 'urls');
 
     $params = [
         'id' => $urlId,
         'url' => $url,
-        'checks' => $checks,
-        'flash' => $messages,
-        'currentPage' => 'urls'
+        'checks' => $checks
     ];
 
     return $this->get('renderer')->render($response, '/urls/show.phtml', $params);
@@ -211,6 +224,6 @@ $app->post('/urls/{id:[0-9]+}/checks', function (Request $request, Response $res
     return $response
         ->withHeader('Location', $this->get('router')->urlFor('urls.show', ['id' => $urlId]))
         ->withStatus(302);
-});
+})->setName('urls.id.checks');
 
 $app->run();
