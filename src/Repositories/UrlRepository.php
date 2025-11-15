@@ -62,25 +62,4 @@ class UrlRepository extends BaseRepository
 
         return $url;
     }
-
-    public function findAllWithLastCheck(UrlCheckRepository $checkRepository): array
-    {
-        $urls = $this->getAll();
-
-        $lastChecks = $checkRepository->findLastChecks();
-
-        $result = [];
-        foreach ($urls as $url) {
-            $urlId = $url->getId();
-
-            $result[] = [
-                'id' => $urlId,
-                'name' => $url->getUrlName(),
-                'created_at' => $lastChecks[$urlId]['created_at'] ?? null,
-                'status_code' => $lastChecks[$urlId]['status_code'] ?? null
-            ];
-        }
-
-        return $result;
-    }
 }
